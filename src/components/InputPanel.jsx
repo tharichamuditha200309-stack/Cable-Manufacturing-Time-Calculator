@@ -63,9 +63,13 @@ export default function InputPanel({
   includeFinishing,
   setIncludeFinishing,
   selectedFinishing,
-  setSelectedFinishing
+  setSelectedFinishing,
+  referenceData
 }) {
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const activeMoulding = referenceData?.moulding || MOULDING_DATA;
+  const activeBraiding = referenceData?.braiding || BRAIDING_DATA;
+  const activeFinishing = referenceData?.finishing || FINISHING_DATA;
 
   const handleLayerBobbinChange = (index, bobbins) => {
     const updated = [...braidingLayers];
@@ -337,12 +341,12 @@ export default function InputPanel({
               onChange={(e) => setFittingSize(e.target.value)}
               className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 font-medium focus:ring-2 focus:ring-violet-500 outline-none disabled:opacity-50"
             >
-              {fittingType === 'Thimble' && MOULDING_DATA.items.Thimble.map(item => (
+              {fittingType === 'Thimble' && activeMoulding.items.Thimble.map(item => (
                 <option key={item.size} value={item.size}>
                   {item.label} ({item.leadTimeMin} min / {item.leadTimeHrs} hrs)
                 </option>
               ))}
-              {fittingType === 'Spool' && MOULDING_DATA.items.Spool.map(item => (
+              {fittingType === 'Spool' && activeMoulding.items.Spool.map(item => (
                 <option key={item.size} value={item.size}>
                   {item.label} ({item.leadTimeMin} min / {item.leadTimeHrs} hrs)
                 </option>
@@ -691,7 +695,7 @@ export default function InputPanel({
 
         {includeFinishing && (
           <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-2">
-            {FINISHING_DATA.map((item) => (
+            {activeFinishing.map((item) => (
               <div key={item.id} className="bg-white border border-slate-200 rounded-lg p-2.5 text-xs space-y-1.5 shadow-2xs">
                 <label className="font-bold text-slate-800 block truncate" title={item.name}>
                   {item.name}

@@ -6,11 +6,22 @@ import DataReferenceModal from './components/DataReferenceModal.jsx';
 import JobTicketModal from './components/JobTicketModal.jsx';
 import ProcessHistoryModal from './components/ProcessHistoryModal.jsx';
 import { calculateCableTimes } from './utils/calculator.js';
+import { INITIAL_REFERENCE_DATA } from './data/manufacturingData.js';
 
 export default function App() {
   // Cable Metadata
   const [cableName, setCableName] = useState('Standard Industrial Cable #01');
   const [shiftHours, setShiftHours] = useState(8);
+
+  // Dynamic & Editable Reference Data (stored in localStorage)
+  const [referenceData, setReferenceData] = useState(() => {
+    try {
+      const saved = localStorage.getItem('cable_calc_reference_data');
+      return saved ? JSON.parse(saved) : INITIAL_REFERENCE_DATA;
+    } catch {
+      return INITIAL_REFERENCE_DATA;
+    }
+  });
 
   // Core Inputs
   const [length, setLength] = useState(15);
@@ -67,7 +78,27 @@ export default function App() {
     }
   }, [history]);
 
-  // Perform Calculation
+  // Handle saving modified reference data
+  const handleSaveReferenceData = (newReferenceData) => {
+    setReferenceData(newReferenceData);
+    try {
+      localStorage.setItem('cable_calc_reference_data', JSON.stringify(newReferenceData));
+    } catch (e) {
+      console.error('Error saving reference data to localStorage', e);
+    }
+  };
+
+  // Handle resetting reference data to factory defaults
+  const handleResetReferenceData = () => {
+    setReferenceData(INITIAL_REFERENCE_DATA);
+    try {
+      localStorage.removeItem('cable_calc_reference_data');
+    } catch (e) {
+      console.error('Error resetting reference data', e);
+    }
+  };
+
+  // Perform Calculation with dynamic referenceData
   const results = useMemo(() => {
     return calculateCableTimes({
       length,
@@ -87,7 +118,8 @@ export default function App() {
       braidingLayers,
       includeFinishing,
       selectedFinishing,
-      shiftHours
+      shiftHours,
+      referenceData
     });
   }, [
     length,
@@ -107,7 +139,8 @@ export default function App() {
     braidingLayers,
     includeFinishing,
     selectedFinishing,
-    shiftHours
+    shiftHours,
+    referenceData
   ]);
 
   // Save current calculation to Process History
@@ -358,6 +391,7 @@ export default function App() {
               setIncludeFinishing={setIncludeFinishing}
               selectedFinishing={selectedFinishing}
               setSelectedFinishing={setSelectedFinishing}
+              referenceData={referenceData}
             />
           </div>
 
@@ -394,6 +428,9 @@ export default function App() {
       <DataReferenceModal
         isOpen={isDataModalOpen}
         onClose={() => setIsDataModalOpen(false)}
+        referenceData={referenceData}
+        onSaveReferenceData={handleSaveReferenceData}
+        onResetReferenceData={handleResetReferenceData}
       />
 
       <JobTicketModal

@@ -3,47 +3,51 @@ import { WINDING_DATA, MOULDING_DATA, TAPING_DATA, BRAIDING_DATA, FINISHING_DATA
 /**
  * Find the matching winding length range
  */
-export function getWindingRange(length) {
+export function getWindingRange(length, windingData = WINDING_DATA) {
   const l = Number(length) || 0;
-  if (l <= 10) return WINDING_DATA.lengthRanges[0];
-  if (l <= 20) return WINDING_DATA.lengthRanges[1];
-  if (l <= 30) return WINDING_DATA.lengthRanges[2];
-  if (l <= 40) return WINDING_DATA.lengthRanges[3];
-  return WINDING_DATA.lengthRanges[4];
+  const ranges = windingData?.lengthRanges || WINDING_DATA.lengthRanges;
+  if (l <= 10) return ranges[0];
+  if (l <= 20) return ranges[1];
+  if (l <= 30) return ranges[2];
+  if (l <= 40) return ranges[3];
+  return ranges[4] || ranges[ranges.length - 1];
 }
 
 /**
  * Find matching taping length range
  */
-export function getTapingRange(length) {
+export function getTapingRange(length, tapingData = TAPING_DATA) {
   const l = Number(length) || 0;
-  if (l <= 10) return TAPING_DATA.lengthRanges[0];
-  if (l <= 20) return TAPING_DATA.lengthRanges[1];
-  if (l <= 30) return TAPING_DATA.lengthRanges[2];
-  if (l <= 40) return TAPING_DATA.lengthRanges[3];
-  return TAPING_DATA.lengthRanges[4];
+  const ranges = tapingData?.lengthRanges || TAPING_DATA.lengthRanges;
+  if (l <= 10) return ranges[0];
+  if (l <= 20) return ranges[1];
+  if (l <= 30) return ranges[2];
+  if (l <= 40) return ranges[3];
+  return ranges[4] || ranges[ranges.length - 1];
 }
 
 /**
  * Find matching braiding rate for length, bobbins, and type
  */
-export function getBraidingRate(length, bobbins, type) {
+export function getBraidingRate(length, bobbins, type, braidingData = BRAIDING_DATA) {
   const l = Number(length) || 0;
+  const layers = braidingData?.layerDetails || BRAIDING_DATA.layerDetails;
+
   let lenRange = '1-10';
   if (l > 10 && l <= 20) lenRange = '10-20';
   else if (l > 20 && l <= 30) lenRange = '20-30';
   else if (l > 30 && l <= 40) lenRange = '30-40';
   else if (l > 40) lenRange = '41-50';
 
-  const match = BRAIDING_DATA.layerDetails.find(
-    item => item.lengthRange === lenRange && item.bobbins === Number(bobbins) && item.type === Number(type)
+  const match = layers.find(
+    item => item.lengthRange === lenRange && Number(item.bobbins) === Number(bobbins) && Number(item.type) === Number(type)
   );
 
   if (match) return match;
 
   // Fallback if specific length range not measured
-  const fallback = BRAIDING_DATA.layerDetails.find(
-    item => item.bobbins === Number(bobbins) && item.type === Number(type)
+  const fallback = layers.find(
+    item => Number(item.bobbins) === Number(bobbins) && Number(item.type) === Number(type)
   );
 
   return fallback || {
@@ -94,20 +98,26 @@ export function calculateCableTimes({
 
   includeFinishing = false,
   selectedFinishing = {}, // map of { [itemId]: specIndex }
-  shiftHours = 8
+  shiftHours = 8,
+  referenceData = null
 }) {
+  const windingData = referenceData?.winding || WINDING_DATA;
+  const mouldingData = referenceData?.moulding || MOULDING_DATA;
+  const tapingData = referenceData?.taping || TAPING_DATA;
+  const braidingData = referenceData?.braiding || BRAIDING_DATA;
+  const finishingData = referenceData?.finishing || FINISHING_DATA;
+
   const numLength = Math.max(0.1, Number(length) || 1);
   const numRounds = Math.max(1, Number(rounds) || 1);
   const numEnds = Math.max(0, Number(endsCount) || 1);
 
   // 1. WINDING CALCULATION
-  // Formula: setup (30 mins) + (winding time for 1m * length * no. of rounds)
-  const windingRange = getWindingRange(numLength);
+  const windingRange = getWindingRange(numLength, windingData);
   const windingRate = customWindingRate !== null && customWindingRate !== undefined && customWindingRate !== ''
     ? Number(customWindingRate)
-    : windingRange.windingTimePerMeter;
+    : Number(windingRange.windingTimePerMeter);
   
-  const windingSetupTime = Number(windingSetup) || 0;
+  const windingSetupTime = Number(windingSetup ?? windingData.fixedSetupTime ?? 30) || 0;
   const windingProcessTime = windingRate * numLength * numRounds;
   const windingTotalTime = windingSetupTime + windingProcessTime;
   
@@ -118,27 +128,25 @@ export function calculateCableTimes({
   const windingLabourHours = (windingTotalTime / 60) * windingLabourHoursRatio;
 
   // 2. MOULDING CALCULATION
-  // Lead time chosen directly according to chart for fitting type and size
   let mouldingLeadTime = 0;
   let mouldingLabourHours = 0;
   let mouldingDetail = null;
 
-  if (fittingType && fittingType !== 'None' && MOULDING_DATA.items[fittingType]) {
-    const item = MOULDING_DATA.items[fittingType].find(i => String(i.size) === String(fittingSize)) 
-      || MOULDING_DATA.items[fittingType][0];
+  if (fittingType && fittingType !== 'None' && mouldingData.items?.[fittingType]) {
+    const item = mouldingData.items[fittingType].find(i => String(i.size) === String(fittingSize)) 
+      || mouldingData.items[fittingType][0];
     
     if (item) {
       mouldingDetail = item;
       const unitTime = (customMouldingLeadTime !== null && customMouldingLeadTime !== undefined && customMouldingLeadTime !== '')
         ? Number(customMouldingLeadTime)
-        : item.leadTimeMin;
+        : Number(item.leadTimeMin);
       mouldingLeadTime = unitTime * numEnds;
-      mouldingLabourHours = (item.labourHrs || (unitTime / 60)) * numEnds;
+      mouldingLabourHours = (Number(item.labourHrs) || (unitTime / 60)) * numEnds;
     }
   }
 
   // 3. TAPING CALCULATION
-  // Formula: setup (20 mins) + (taping time of 1m * length)
   let tapingSetupTime = 0;
   let tapingProcessTime = 0;
   let tapingTotalTime = 0;
@@ -147,12 +155,12 @@ export function calculateCableTimes({
   let tapingRate = 0;
 
   if (includeTaping) {
-    tapingRange = getTapingRange(numLength);
+    tapingRange = getTapingRange(numLength, tapingData);
     tapingRate = customTapingRate !== null && customTapingRate !== undefined && customTapingRate !== ''
       ? Number(customTapingRate)
-      : tapingRange.tapingTimePerMeter;
+      : Number(tapingRange.tapingTimePerMeter);
     
-    tapingSetupTime = Number(tapingSetup) || 0;
+    tapingSetupTime = Number(tapingSetup ?? tapingData.fixedSetupTime ?? 20) || 0;
     tapingProcessTime = tapingRate * numLength;
     tapingTotalTime = tapingSetupTime + tapingProcessTime;
     
@@ -163,7 +171,6 @@ export function calculateCableTimes({
   }
 
   // 4. BRAIDING CALCULATION
-  // Formula: setup = 90 mins base + 10 mins per layer; process time = braiding time for 1m * length (summed over layers)
   let braidingSetupTime = 0;
   let braidingProcessTime = 0;
   let braidingTotalTime = 0;
@@ -172,15 +179,15 @@ export function calculateCableTimes({
 
   if (includeBraiding && braidingLayers.length > 0) {
     const layerCount = braidingLayers.length;
-    const baseSetup = Number(braidingBaseSetup) || 0;
-    const perLayerSetup = Number(braidingSetupPerLayer) || 0;
+    const baseSetup = Number(braidingBaseSetup ?? braidingData.baseSetupTime ?? 90) || 0;
+    const perLayerSetup = Number(braidingSetupPerLayer ?? braidingData.setupTimePerLayer ?? 10) || 0;
     braidingSetupTime = baseSetup + (layerCount * perLayerSetup);
 
     braidingLayers.forEach((layer, idx) => {
-      const match = getBraidingRate(numLength, layer.bobbins, layer.type);
+      const match = getBraidingRate(numLength, layer.bobbins, layer.type, braidingData);
       const rate = (layer.customRate !== null && layer.customRate !== undefined && layer.customRate !== '')
         ? Number(layer.customRate)
-        : match.leadTimePerMeter;
+        : Number(match.leadTimePerMeter);
       
       const layerTime = rate * numLength;
       braidingProcessTime += layerTime;
@@ -197,10 +204,10 @@ export function calculateCableTimes({
     });
 
     braidingTotalTime = braidingSetupTime + braidingProcessTime;
-    braidingLabourHours = (braidingTotalTime / 60) * 0.95; // Industry standard baseline
+    braidingLabourHours = (braidingTotalTime / 60) * 0.95;
   }
 
-  // 5. FINISHING CALCULATION (Optional Process Module)
+  // 5. FINISHING CALCULATION
   let finishingTotalTime = 0;
   let finishingLabourHours = 0;
   const finishingItems = [];
@@ -208,7 +215,7 @@ export function calculateCableTimes({
   if (includeFinishing) {
     Object.entries(selectedFinishing).forEach(([itemId, specIdx]) => {
       if (specIdx !== null && specIdx !== undefined && specIdx !== -1) {
-        const op = FINISHING_DATA.find(f => f.id === itemId);
+        const op = finishingData.find(f => f.id === itemId);
         if (op && op.specs[specIdx]) {
           const spec = op.specs[specIdx];
           finishingTotalTime += spec.processTime;
@@ -273,8 +280,8 @@ export function calculateCableTimes({
     },
     braiding: {
       enabled: includeBraiding,
-      baseSetup: Number(braidingBaseSetup) || 0,
-      setupPerLayer: Number(braidingSetupPerLayer) || 0,
+      baseSetup: Number(braidingBaseSetup ?? braidingData.baseSetupTime ?? 90) || 0,
+      setupPerLayer: Number(braidingSetupPerLayer ?? braidingData.setupTimePerLayer ?? 10) || 0,
       setupTime: braidingSetupTime,
       processTime: braidingProcessTime,
       totalTime: braidingTotalTime,

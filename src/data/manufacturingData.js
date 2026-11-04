@@ -207,3 +207,12 @@ export const FINISHING_DATA = [
   ]}
 ];
 
+export const INITIAL_REFERENCE_DATA = {
+  winding: WINDING_DATA,
+  moulding: MOULDING_DATA,
+  taping: TAPING_DATA,
+  braiding: BRAIDING_DATA,
+  finishing: FINISHING_DATA
+};
+
+
