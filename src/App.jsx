@@ -1,9 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Header from './components/Header.jsx';
 import OverallSummaryPanel from './components/OverallSummaryPanel.jsx';
 import InputPanel from './components/InputPanel.jsx';
 import DataReferenceModal from './components/DataReferenceModal.jsx';
 import JobTicketModal from './components/JobTicketModal.jsx';
+import ProcessHistoryModal from './components/ProcessHistoryModal.jsx';
 import { calculateCableTimes } from './utils/calculator.js';
 
 export default function App() {
@@ -45,6 +46,26 @@ export default function App() {
   // Modals
   const [isDataModalOpen, setIsDataModalOpen] = useState(false);
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+
+  // Process History State (stored in localStorage)
+  const [history, setHistory] = useState(() => {
+    try {
+      const saved = localStorage.getItem('cable_calc_process_history');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Sync history with localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('cable_calc_process_history', JSON.stringify(history));
+    } catch (e) {
+      console.error('Error saving history to localStorage', e);
+    }
+  }, [history]);
 
   // Perform Calculation
   const results = useMemo(() => {
@@ -88,6 +109,74 @@ export default function App() {
     selectedFinishing,
     shiftHours
   ]);
+
+  // Save current calculation to Process History
+  const handleSaveToHistory = () => {
+    const newEntry = {
+      id: String(Date.now()),
+      timestamp: new Date().toLocaleString([], { 
+        month: 'short', 
+        day: 'numeric', 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      }),
+      cableName: cableName || 'Custom Cable Calculation',
+      inputs: {
+        length: Number(length),
+        rounds: Number(rounds),
+        fittingType,
+        fittingSize,
+        endsCount,
+        includeTaping,
+        includeBraiding,
+        braidingLayersCount: braidingLayers.length,
+        braidingLayers: [...braidingLayers]
+      },
+      breakdown: {
+        windingTime: results.winding.totalTime,
+        mouldingTime: results.moulding.leadTime,
+        tapingTime: results.taping.enabled ? results.taping.totalTime : 0,
+        braidingTime: results.braiding.enabled ? results.braiding.totalTime : 0,
+        finishingTime: results.finishing.enabled ? results.finishing.totalTime : 0
+      },
+      overallMinutes: results.totals.grandTotalMinutes,
+      formattedTime: results.totals.formattedTime,
+      totalSetupTime: results.totals.totalSetupTime,
+      totalProcessTime: results.totals.totalProcessTime,
+      totalLabourHours: results.totals.totalLabourHours
+    };
+
+    setHistory(prev => [newEntry, ...prev]);
+  };
+
+  // Delete a specific history item
+  const handleDeleteHistoryItem = (id) => {
+    setHistory(prev => prev.filter(item => item.id !== id));
+  };
+
+  // Clear all history
+  const handleClearAllHistory = () => {
+    if (window.confirm('Are you sure you want to delete all saved process history?')) {
+      setHistory([]);
+    }
+  };
+
+  // Load a past history calculation back into the calculator
+  const handleLoadHistoryItem = (item) => {
+    if (!item) return;
+    setCableName(item.cableName);
+    setLength(item.inputs.length);
+    setRounds(item.inputs.rounds);
+    setFittingType(item.inputs.fittingType);
+    setFittingSize(item.inputs.fittingSize);
+    if (item.inputs.endsCount !== undefined) setEndsCount(item.inputs.endsCount);
+    if (item.inputs.includeTaping !== undefined) setIncludeTaping(item.inputs.includeTaping);
+    if (item.inputs.includeBraiding !== undefined) setIncludeBraiding(item.inputs.includeBraiding);
+    if (item.inputs.braidingLayers && item.inputs.braidingLayers.length > 0) {
+      setBraidingLayers(item.inputs.braidingLayers);
+    }
+    setIsHistoryModalOpen(false);
+  };
 
   // Preset Loader
   const handleLoadPreset = (presetId) => {
@@ -211,6 +300,8 @@ export default function App() {
         onReset={handleReset}
         onOpenDataModal={() => setIsDataModalOpen(true)}
         onOpenTicketModal={() => setIsTicketModalOpen(true)}
+        onOpenHistoryModal={() => setIsHistoryModalOpen(true)}
+        historyCount={history.length}
         onExportData={handleExportData}
         totalTimeFormatted={results.totals.formattedTime}
       />
@@ -279,6 +370,9 @@ export default function App() {
               setShiftHours={setShiftHours}
               onOpenTicketModal={() => setIsTicketModalOpen(true)}
               onExportData={handleExportData}
+              onSaveToHistory={handleSaveToHistory}
+              onOpenHistoryModal={() => setIsHistoryModalOpen(true)}
+              historyCount={history.length}
             />
           </div>
 
@@ -307,6 +401,15 @@ export default function App() {
         onClose={() => setIsTicketModalOpen(false)}
         results={results}
         cableName={cableName}
+      />
+
+      <ProcessHistoryModal
+        isOpen={isHistoryModalOpen}
+        onClose={() => setIsHistoryModalOpen(false)}
+        history={history}
+        onDeleteHistoryItem={handleDeleteHistoryItem}
+        onClearAllHistory={handleClearAllHistory}
+        onLoadHistoryItem={handleLoadHistoryItem}
       />
 
     </div>

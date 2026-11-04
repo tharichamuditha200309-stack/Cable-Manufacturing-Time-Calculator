@@ -10,7 +10,8 @@ import {
   Check, 
   Plus, 
   Equal,
-  Sparkles,
+  BookmarkPlus,
+  History,
   ArrowRight
 } from 'lucide-react';
 import { formatMinutes } from '../utils/calculator.js';
@@ -21,9 +22,13 @@ export default function OverallSummaryPanel({
   shiftHours = 8,
   setShiftHours,
   onOpenTicketModal,
-  onExportData
+  onExportData,
+  onSaveToHistory,
+  onOpenHistoryModal,
+  historyCount = 0
 }) {
   const [copied, setCopied] = useState(false);
+  const [savedToHistory, setSavedToHistory] = useState(false);
   const { totals, winding, moulding, taping, braiding, finishing, inputs } = results;
 
   // Process item values for summation
@@ -95,6 +100,12 @@ Labour Hours:   ${totals.totalLabourHours.toFixed(1)} hrs (~${totals.productionS
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleSaveClick = () => {
+    onSaveToHistory();
+    setSavedToHistory(true);
+    setTimeout(() => setSavedToHistory(false), 2000);
+  };
+
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6 sticky top-20">
       
@@ -108,9 +119,22 @@ Labour Hours:   ${totals.totalLabourHours.toFixed(1)} hrs (~${totals.productionS
             Overall Cable Time
           </h2>
         </div>
-        <span className="text-xs px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 font-medium border border-slate-200 font-mono">
-          {inputs.length}m • {inputs.rounds} rnds
-        </span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onOpenHistoryModal}
+            className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-colors"
+            title="View process history"
+          >
+            <History className="w-3.5 h-3.5 text-blue-600" />
+            <span>History</span>
+            {historyCount > 0 && (
+              <span className="w-4 h-4 rounded-full bg-blue-600 text-white text-[10px] flex items-center justify-center font-bold">
+                {historyCount}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* BIG NUMBER DISPLAY CARD */}
@@ -248,8 +272,29 @@ Labour Hours:   ${totals.totalLabourHours.toFixed(1)} hrs (~${totals.productionS
         </div>
       </div>
 
-      {/* Actions: Copy Summary, Job Ticket, Export */}
+      {/* Actions: Save to History, Copy Summary, Job Ticket, Export */}
       <div className="space-y-2 pt-2 border-t border-slate-100">
+        
+        {/* Save to History Button */}
+        <button
+          type="button"
+          onClick={handleSaveClick}
+          className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-all active:scale-[0.99]"
+        >
+          {savedToHistory ? (
+            <>
+              <Check className="w-4 h-4 text-white" />
+              <span>Saved to Process History!</span>
+            </>
+          ) : (
+            <>
+              <BookmarkPlus className="w-4 h-4" />
+              <span>Save Calculation to Process History</span>
+            </>
+          )}
+        </button>
+
+        {/* Copy button */}
         <button
           type="button"
           onClick={handleCopySummary}
@@ -292,4 +337,3 @@ Labour Hours:   ${totals.totalLabourHours.toFixed(1)} hrs (~${totals.productionS
     </div>
   );
 }
-

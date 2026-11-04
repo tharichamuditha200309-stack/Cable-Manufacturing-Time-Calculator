@@ -6,7 +6,8 @@ import {
   Sparkles, 
   Download, 
   Layers,
-  Clock
+  Clock,
+  History
 } from 'lucide-react';
 
 export default function Header({ 
@@ -16,6 +17,8 @@ export default function Header({
   onReset, 
   onOpenDataModal, 
   onOpenTicketModal,
+  onOpenHistoryModal,
+  historyCount = 0,
   onExportData,
   totalTimeFormatted
 }) {
@@ -51,7 +54,7 @@ export default function Header({
             </div>
           </div>
 
-          {/* Quick Preset Selector & Action Buttons */}
+          {/* Action Buttons */}
           <div className="flex flex-wrap items-center gap-2">
             
             {/* Presets dropdown */}
@@ -96,6 +99,21 @@ export default function Header({
               </div>
             </div>
 
+            {/* Process History */}
+            <button 
+              onClick={onOpenHistoryModal}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 hover:border-slate-400 transition-all shadow-2xs"
+              title="View saved process calculations history"
+            >
+              <History className="w-3.5 h-3.5 text-blue-600" />
+              <span>History</span>
+              {historyCount > 0 && (
+                <span className="ml-0.5 px-1.5 py-0.2 rounded-full bg-blue-600 text-white text-[10px] font-bold">
+                  {historyCount}
+                </span>
+              )}
+            </button>
+
             {/* View Rates Matrix */}
             <button 
               onClick={onOpenDataModal}
@@ -116,7 +134,7 @@ export default function Header({
               <span className="hidden sm:inline">Job Ticket</span>
             </button>
 
-            {/* Export JSON / CSV */}
+            {/* Export CSV */}
             <button 
               onClick={onExportData}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 hover:border-slate-400 transition-all shadow-2xs"
