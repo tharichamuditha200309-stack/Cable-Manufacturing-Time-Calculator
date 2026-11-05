@@ -107,15 +107,15 @@ Labour Hours:   ${totals.totalLabourHours.toFixed(1)} hrs (~${totals.productionS
   };
 
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6 sticky top-20">
+    <div className="bg-[#f0f6fc] border border-blue-200/80 rounded-2xl p-6 shadow-sm space-y-6 sticky top-20">
       
       {/* Top Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+      <div className="flex items-center justify-between pb-4 border-b border-blue-200/60">
         <div>
-          <span className="text-[11px] font-bold uppercase tracking-wider text-blue-600 flex items-center gap-1.5">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-blue-600 flex items-center gap-1.5 font-heading">
             <Clock className="w-4 h-4 text-blue-600" /> Manufacturing Lead Time
           </span>
-          <h2 className="text-xl font-extrabold text-slate-900 tracking-tight mt-0.5">
+          <h2 className="text-xl font-semibold text-slate-900 tracking-tight mt-0.5 font-heading">
             Overall Cable Time
           </h2>
         </div>
@@ -123,13 +123,13 @@ Labour Hours:   ${totals.totalLabourHours.toFixed(1)} hrs (~${totals.productionS
           <button
             type="button"
             onClick={onOpenHistoryModal}
-            className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-colors"
+            className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-white hover:bg-blue-50 text-slate-700 border border-blue-200 transition-colors shadow-2xs font-sans"
             title="View process history"
           >
             <History className="w-3.5 h-3.5 text-blue-600" />
             <span>History</span>
             {historyCount > 0 && (
-              <span className="w-4 h-4 rounded-full bg-blue-600 text-white text-[10px] flex items-center justify-center font-bold">
+              <span className="w-4 h-4 rounded-full bg-blue-600 text-white text-[10px] flex items-center justify-center font-medium font-sans">
                 {historyCount}
               </span>
             )}
@@ -138,40 +138,40 @@ Labour Hours:   ${totals.totalLabourHours.toFixed(1)} hrs (~${totals.productionS
       </div>
 
       {/* BIG NUMBER DISPLAY CARD */}
-      <div className="bg-gradient-to-br from-blue-50/70 via-white to-indigo-50/40 rounded-2xl p-6 border-2 border-blue-200 shadow-sm text-center relative overflow-hidden">
-        <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
+      <div className="bg-[#f8faff] rounded-2xl p-6 border-2 border-blue-200 shadow-2xs text-center relative overflow-hidden">
+        <div className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1 font-sans">
           Total Calculated Manufacturing Time
         </div>
         
-        {/* HUGE Number Display */}
-        <div className="text-5xl sm:text-6xl font-black text-slate-900 tracking-tight font-mono py-1">
+        {/* HUGE Number Display (Poppins SemiBold / Inter Medium) */}
+        <div className="text-5xl sm:text-6xl font-semibold text-slate-900 tracking-tight font-heading py-1">
           {totals.formattedTime}
         </div>
 
         {/* Big Total Minutes badge */}
-        <div className="mt-2 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-600 text-white shadow-sm">
-          <span className="text-base font-extrabold font-mono tracking-tight">
+        <div className="mt-2 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-600 text-white shadow-xs">
+          <span className="text-base font-semibold font-sans tracking-tight">
             {totals.grandTotalMinutes.toFixed(1)}
           </span>
-          <span className="text-xs font-medium text-blue-100 uppercase tracking-wide">
+          <span className="text-xs font-medium text-blue-100 uppercase tracking-wide font-sans">
             Total Minutes
           </span>
         </div>
 
-        <div className="mt-4 pt-3 border-t border-blue-100/80 flex items-center justify-around text-xs text-slate-600 font-mono">
+        <div className="mt-4 pt-3 border-t border-blue-100 flex items-center justify-around text-xs text-slate-600 font-sans font-medium">
           <div>
-            <span className="text-slate-400 block text-[10px] uppercase font-sans">Decimal Hours</span>
-            <span className="font-bold text-slate-800 text-sm">{totals.grandTotalHours.toFixed(2)} hrs</span>
+            <span className="text-slate-400 block text-[10px] uppercase font-normal">Decimal Hours</span>
+            <span className="font-semibold text-slate-800 text-sm">{totals.grandTotalHours.toFixed(2)} hrs</span>
           </div>
-          <div className="h-6 w-px bg-blue-200/80" />
+          <div className="h-6 w-px bg-blue-200" />
           <div>
-            <span className="text-slate-400 block text-[10px] uppercase font-sans">Est. Labour</span>
-            <span className="font-bold text-slate-800 text-sm">{totals.totalLabourHours.toFixed(1)} hrs</span>
+            <span className="text-slate-400 block text-[10px] uppercase font-normal">Est. Labour</span>
+            <span className="font-semibold text-slate-800 text-sm">{totals.totalLabourHours.toFixed(1)} hrs</span>
           </div>
-          <div className="h-6 w-px bg-blue-200/80" />
+          <div className="h-6 w-px bg-blue-200" />
           <div>
-            <span className="text-slate-400 block text-[10px] uppercase font-sans">Work Shifts</span>
-            <span className="font-bold text-blue-700 text-sm">{totals.productionShifts} shifts</span>
+            <span className="text-slate-400 block text-[10px] uppercase font-normal">Work Shifts</span>
+            <span className="font-semibold text-blue-700 text-sm">{totals.productionShifts} shifts</span>
           </div>
         </div>
       </div>
@@ -179,42 +179,42 @@ Labour Hours:   ${totals.totalLabourHours.toFixed(1)} hrs (~${totals.productionS
       {/* SUMMATION OF EACH PROCESS */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+          <span className="text-xs font-semibold uppercase tracking-wider text-slate-800 flex items-center gap-1.5 font-heading">
             <Plus className="w-3.5 h-3.5 text-blue-600" />
             Summation of Process Times
           </span>
-          <span className="text-[11px] text-slate-400 font-mono">
+          <span className="text-[11px] text-slate-400 font-sans font-normal">
             Winding + Moulding + Taping + Braiding
           </span>
         </div>
 
         {/* Math summation list */}
-        <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 space-y-2.5">
+        <div className="bg-[#f8faff] rounded-xl p-4 border border-blue-100 shadow-2xs space-y-2.5">
           {processes.map((proc, index) => {
             const pct = totals.grandTotalMinutes > 0 ? ((proc.time / totals.grandTotalMinutes) * 100).toFixed(0) : 0;
             return (
               <div 
                 key={proc.id} 
-                className={`flex items-center justify-between text-xs py-1.5 px-2 rounded-lg ${
-                  proc.active ? 'bg-white border border-slate-200/80 shadow-2xs' : 'opacity-40 line-through'
+                className={`flex items-center justify-between text-xs py-1.5 px-2.5 rounded-lg ${
+                  proc.active ? 'bg-white border border-slate-200 shadow-2xs' : 'opacity-40 line-through'
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-slate-400 font-mono text-xs w-4">
+                  <span className="text-slate-400 font-sans text-xs w-4 font-normal">
                     {index === 0 ? '' : '+'}
                   </span>
                   <div>
-                    <span className="font-bold text-slate-800">{proc.name}</span>
-                    <span className="text-[10px] text-slate-400 block font-mono">{proc.formula}</span>
+                    <span className="font-medium text-slate-800 font-sans">{proc.name}</span>
+                    <span className="text-[10px] text-slate-400 block font-sans font-normal">{proc.formula}</span>
                   </div>
                 </div>
 
-                <div className="text-right font-mono">
-                  <span className="text-sm font-extrabold text-slate-900">
+                <div className="text-right font-sans">
+                  <span className="text-sm font-semibold text-slate-900">
                     {proc.active ? proc.time.toFixed(1) : '0'} <span className="text-[11px] font-normal text-slate-500">min</span>
                   </span>
                   {proc.active && (
-                    <span className="text-[10px] text-slate-400 block font-sans">
+                    <span className="text-[10px] text-slate-400 block font-normal">
                       ({pct}%)
                     </span>
                   )}
@@ -224,18 +224,18 @@ Labour Hours:   ${totals.totalLabourHours.toFixed(1)} hrs (~${totals.productionS
           })}
 
           {/* Summation line & Result */}
-          <div className="pt-2 border-t-2 border-slate-300 flex items-center justify-between font-mono bg-blue-50/60 p-2.5 rounded-lg border border-blue-200">
+          <div className="pt-2 border-t border-blue-200 flex items-center justify-between font-sans bg-blue-100/60 p-2.5 rounded-lg border border-blue-200">
             <div className="flex items-center gap-2">
-              <Equal className="w-4 h-4 text-blue-600 font-bold" />
-              <span className="font-extrabold text-slate-900 text-sm uppercase">
+              <Equal className="w-4 h-4 text-blue-600 font-semibold" />
+              <span className="font-semibold text-slate-900 text-sm uppercase">
                 Overall Total:
               </span>
             </div>
             <div className="text-right">
-              <span className="text-lg font-black text-blue-700">
-                {totals.grandTotalMinutes.toFixed(1)} <span className="text-xs font-bold text-slate-600">min</span>
+              <span className="text-lg font-semibold text-blue-800">
+                {totals.grandTotalMinutes.toFixed(1)} <span className="text-xs font-medium text-slate-600">min</span>
               </span>
-              <span className="text-[11px] text-slate-600 font-bold block">
+              <span className="text-[11px] text-slate-600 font-medium block">
                 = {totals.formattedTime}
               </span>
             </div>
@@ -244,42 +244,42 @@ Labour Hours:   ${totals.totalLabourHours.toFixed(1)} hrs (~${totals.productionS
       </div>
 
       {/* Setup Allowance vs Machine Run Time */}
-      <div className="grid grid-cols-2 gap-3 text-xs">
-        <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
-          <div className="text-slate-500 font-semibold flex items-center gap-1.5 mb-1 text-[11px]">
+      <div className="grid grid-cols-2 gap-3 text-xs font-sans">
+        <div className="bg-[#f8faff] border border-blue-100 rounded-xl p-3 shadow-2xs">
+          <div className="text-slate-500 font-medium flex items-center gap-1.5 mb-1 text-[11px]">
             <Wrench className="w-3.5 h-3.5 text-amber-500" />
             Total Setup Time
           </div>
-          <div className="text-xl font-bold font-mono text-slate-900">
+          <div className="text-xl font-semibold text-slate-900">
             {totals.formattedSetupTime}
           </div>
-          <div className="text-[10px] text-slate-500 font-mono">
+          <div className="text-[10px] text-slate-500 font-normal">
             {totals.totalSetupTime} min ({totals.setupPercent}%)
           </div>
         </div>
 
-        <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
-          <div className="text-slate-500 font-semibold flex items-center gap-1.5 mb-1 text-[11px]">
+        <div className="bg-[#f8faff] border border-blue-100 rounded-xl p-3 shadow-2xs">
+          <div className="text-slate-500 font-medium flex items-center gap-1.5 mb-1 text-[11px]">
             <PlayCircle className="w-3.5 h-3.5 text-emerald-600" />
             Machine Run Time
           </div>
-          <div className="text-xl font-bold font-mono text-slate-900">
+          <div className="text-xl font-semibold text-slate-900">
             {totals.formattedProcessTime}
           </div>
-          <div className="text-[10px] text-slate-500 font-mono">
+          <div className="text-[10px] text-slate-500 font-normal">
             {totals.totalProcessTime.toFixed(1)} min ({totals.processPercent}%)
           </div>
         </div>
       </div>
 
       {/* Actions: Save to History, Copy Summary, Job Ticket, Export */}
-      <div className="space-y-2 pt-2 border-t border-slate-100">
+      <div className="space-y-2 pt-2 border-t border-blue-200/60 font-sans">
         
         {/* Save to History Button */}
         <button
           type="button"
           onClick={handleSaveClick}
-          className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-all active:scale-[0.99]"
+          className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition-all active:scale-[0.99]"
         >
           {savedToHistory ? (
             <>
@@ -298,7 +298,7 @@ Labour Hours:   ${totals.totalLabourHours.toFixed(1)} hrs (~${totals.productionS
         <button
           type="button"
           onClick={handleCopySummary}
-          className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white shadow transition-all active:scale-[0.99]"
+          className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl text-xs font-medium bg-slate-900 hover:bg-slate-800 text-white shadow-xs transition-all active:scale-[0.99]"
         >
           {copied ? (
             <>
@@ -317,7 +317,7 @@ Labour Hours:   ${totals.totalLabourHours.toFixed(1)} hrs (~${totals.productionS
           <button
             type="button"
             onClick={onOpenTicketModal}
-            className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 transition-colors"
+            className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-medium bg-white hover:bg-blue-50 text-slate-800 border border-slate-200 transition-colors shadow-2xs"
           >
             <Printer className="w-3.5 h-3.5 text-slate-600" />
             <span>Job Ticket</span>
@@ -326,7 +326,7 @@ Labour Hours:   ${totals.totalLabourHours.toFixed(1)} hrs (~${totals.productionS
           <button
             type="button"
             onClick={onExportData}
-            className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 transition-colors"
+            className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-medium bg-white hover:bg-blue-50 text-slate-800 border border-slate-200 transition-colors shadow-2xs"
           >
             <Download className="w-3.5 h-3.5 text-slate-600" />
             <span>Export CSV</span>

@@ -124,20 +124,20 @@ export default function DataReferenceModal({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base font-extrabold text-slate-900">
+                <h3 className="text-base font-semibold text-slate-900 font-heading">
                   Production Timing Study — Reference Tables & Rates
                 </h3>
                 {isEditing ? (
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 font-bold animate-pulse">
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 font-medium font-sans animate-pulse">
                     Editing Mode Active
                   </span>
                 ) : (
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-medium">
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-sans font-medium">
                     Standard Rates
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 font-sans font-normal">
                 View or edit standard speeds, setup allowances, and lead time lookup tables
               </p>
             </div>

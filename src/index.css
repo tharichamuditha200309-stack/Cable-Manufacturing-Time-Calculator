@@ -4,25 +4,30 @@
 
 @layer base {
   body {
-    @apply bg-slate-100 text-slate-900 font-sans antialiased selection:bg-blue-600 selection:text-white;
+    @apply bg-[#edf4fb] text-slate-900 font-sans antialiased;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
   }
 }
 
-/* Light mode clean subtle scrollbars */
+/* Light subtle scrollbars */
 ::-webkit-scrollbar {
   width: 7px;
   height: 7px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #e2eaf3;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #bcd0e4;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #9ab9d7;
 }
 
 /* Print styling for shop-floor job traveler tickets */

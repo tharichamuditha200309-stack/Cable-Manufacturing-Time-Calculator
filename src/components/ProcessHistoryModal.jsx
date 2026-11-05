@@ -82,14 +82,14 @@ export default function ProcessHistoryModal({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base font-extrabold text-slate-900">
+                <h3 className="text-base font-semibold text-slate-900 font-heading">
                   Process History & Calculation Log
                 </h3>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-slate-200 text-slate-700 font-bold font-mono">
+                <span className="text-xs px-2 py-0.5 rounded-full bg-slate-200 text-slate-700 font-medium font-sans">
                   {history.length} {history.length === 1 ? 'record' : 'records'}
                 </span>
               </div>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 font-sans font-normal">
                 Review completed cable process calculations, load previous specs, or remove entries
               </p>
             </div>

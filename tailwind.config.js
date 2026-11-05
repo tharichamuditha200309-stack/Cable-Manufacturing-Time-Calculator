@@ -4,9 +4,13 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
-  darkMode: 'class',
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'sans-serif'],
+        heading: ['Poppins', 'sans-serif'],
+        mono: ['Inter', 'monospace'],
+      },
       colors: {
         brand: {
           50: '#eff6ff',
@@ -23,4 +27,3 @@ export default {
   },
   plugins: [],
 }
-
