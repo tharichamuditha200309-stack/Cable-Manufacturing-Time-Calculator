@@ -11,7 +11,8 @@ import {
   ChevronDown, 
   ChevronUp, 
   CheckCircle2, 
-  SlidersHorizontal 
+  SlidersHorizontal,
+  Database
 } from 'lucide-react';
 import { MOULDING_DATA, BRAIDING_DATA, FINISHING_DATA } from '../data/manufacturingData.js';
 
@@ -820,9 +821,16 @@ export default function InputPanel({
           <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-2 font-sans">
             {activeFinishing.map((item) => (
               <div key={item.id} className="bg-white border border-slate-200 rounded-lg p-2.5 text-xs space-y-1.5 shadow-2xs">
-                <label className="font-medium text-slate-800 block truncate" title={item.name}>
-                  {item.name}
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="font-semibold text-slate-800 block truncate" title={item.name}>
+                    {item.name}
+                  </label>
+                  {item.cableType && item.cableType !== 'All' && (
+                    <span className="text-[10px] bg-amber-50 text-amber-800 px-1.5 py-0.2 rounded border border-amber-200 shrink-0 font-medium">
+                      {item.cableType}
+                    </span>
+                  )}
+                </div>
                 <select
                   value={selectedFinishing[item.id] ?? ''}
                   onChange={(e) => handleFinishingSelect(item.id, e.target.value)}
@@ -840,6 +848,49 @@ export default function InputPanel({
           </div>
         )}
       </div>
+
+      {/* 6. Custom Process Stage Tables (If created via "Add New Table") */}
+      {referenceData?.customTables?.length > 0 && (
+        <div className="bg-[#f8faff] rounded-xl p-4 border border-indigo-100 shadow-2xs space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-800 flex items-center gap-2 font-heading">
+              <Database className="w-4 h-4 text-indigo-600" /> 6. Custom Process Tables ({referenceData.customTables.length})
+            </span>
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 font-sans font-medium">
+              Custom Rates Active
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+            {referenceData.customTables.map((tbl) => (
+              <div key={tbl.id} className="bg-white border border-indigo-200 rounded-xl p-3 space-y-2 text-xs shadow-2xs">
+                <div className="flex items-center justify-between border-b border-indigo-100 pb-1.5">
+                  <div>
+                    <h4 className="font-bold text-slate-900">{tbl.name}</h4>
+                    <span className="text-[10px] text-slate-500">{tbl.category}</span>
+                  </div>
+                  {tbl.fixedSetupTime > 0 && (
+                    <span className="text-[11px] font-mono text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
+                      Setup: {tbl.fixedSetupTime}m
+                    </span>
+                  )}
+                </div>
+                <div className="text-[11px] text-slate-600 space-y-1">
+                  {tbl.rows.slice(0, 3).map((r, i) => (
+                    <div key={i} className="flex justify-between font-sans">
+                      <span>{r.item} ({r.spec})</span>
+                      <strong className="text-indigo-800 font-mono">{r.processTime} min</strong>
+                    </div>
+                  ))}
+                  {tbl.rows.length > 3 && (
+                    <div className="text-[10px] text-slate-400">+{tbl.rows.length - 3} more operations</div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
     </div>
   );

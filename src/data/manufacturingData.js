@@ -179,32 +179,77 @@ export const BRAIDING_DATA = {
 };
 
 export const FINISHING_DATA = [
-  { id: 'cutback_shrink', name: 'Cut back & shrink tube installment', category: 'Cut Back', specs: [
-    { spec: 'Size 2', processTime: 60, labours: 2, labourHrs: 2 },
-    { spec: 'Size 3', processTime: 90, labours: 2, labourHrs: 3 },
-    { spec: 'Size 4', processTime: 120, labours: 2, labourHrs: 4 },
-    { spec: 'Size 5', processTime: 150, labours: 2, labourHrs: 5 },
-  ]},
-  { id: 'testing', name: 'Testing', category: 'Quality', specs: [
-    { spec: 'Standard Testing', processTime: 60, labours: 2, labourHrs: 2 }
-  ]},
-  { id: 'breaking', name: 'Cable breaking', category: 'Breaking', specs: [
-    { spec: 'Rounds 1-50', processTime: 20, labours: 4, labourHrs: 1.33 },
-    { spec: 'Rounds 501-1000', processTime: 40, labours: 25, labourHrs: 16.67 },
-  ]},
-  { id: 'coiling', name: 'Coiling', category: 'Handling', specs: [
-    { spec: 'Length 1,000–20,000 mm (1-20m)', processTime: 30, labours: 2, labourHrs: 1.0 },
-    { spec: 'Length 20,000–50,000 mm (20-50m)', processTime: 40, labours: 4, labourHrs: 2.67 },
-  ]},
-  { id: 'polishing', name: 'Fitting Polishing & cleaning', category: 'Finishing', specs: [
-    { spec: 'Size 2-3', processTime: 30, labours: 1, labourHrs: 0.5 },
-    { spec: 'Size 4-6', processTime: 60, labours: 1, labourHrs: 1.0 },
-  ]},
-  { id: 'box_prep', name: 'Box Preparation', category: 'Packaging', specs: [
-    { spec: 'Size 1-2', processTime: 30, labours: 2, labourHrs: 1.0 },
-    { spec: 'Size 3', processTime: 45, labours: 2, labourHrs: 1.5 },
-    { spec: 'Size 4', processTime: 60, labours: 2, labourHrs: 2.0 },
-  ]}
+  { 
+    id: 'cutback_shrink', 
+    cableType: 'Torquelite', 
+    name: 'Cut back & shrink tube installment', 
+    category: 'Cut Back', 
+    specs: [
+      { spec: 'Size 2', processTime: 60, labours: 2, labourHrs: 2 },
+      { spec: 'Size 3', processTime: 90, labours: 2, labourHrs: 3 },
+      { spec: 'Size 4', processTime: 120, labours: 2, labourHrs: 4 },
+      { spec: 'Size 5', processTime: 150, labours: 2, labourHrs: 5 },
+    ]
+  },
+  { 
+    id: 'cutback_flex', 
+    cableType: 'Torquelite Flex', 
+    name: 'Cut back', 
+    category: 'Cut Back', 
+    specs: [
+      { spec: 'Standard', processTime: 60, labours: 2, labourHrs: 2 }
+    ]
+  },
+  { 
+    id: 'testing', 
+    cableType: 'All', 
+    name: 'Testing', 
+    category: 'Quality', 
+    specs: [
+      { spec: 'Standard Testing', processTime: 60, labours: 2, labourHrs: 2 }
+    ]
+  },
+  { 
+    id: 'breaking', 
+    cableType: 'All', 
+    name: 'Cable breaking', 
+    category: 'Breaking', 
+    specs: [
+      { spec: 'Rounds 1-50', processTime: 20, labours: 4, labourHrs: 1.33 },
+      { spec: 'Rounds 501-1000', processTime: 40, labours: 25, labourHrs: 16.67 },
+    ]
+  },
+  { 
+    id: 'coiling', 
+    cableType: 'All', 
+    name: 'Coiling', 
+    category: 'Handling', 
+    specs: [
+      { spec: 'Length 1000-20000', processTime: 30, labours: 2, labourHrs: 1.0 },
+      { spec: 'Length 20000-50000', processTime: 40, labours: 4, labourHrs: 2.67 },
+    ]
+  },
+  { 
+    id: 'polishing', 
+    cableType: 'All', 
+    name: 'Fitting Polishing & cleaning', 
+    category: 'Finishing', 
+    specs: [
+      { spec: 'Size 2-3', processTime: 30, labours: 1, labourHrs: 0.5 },
+      { spec: 'Size 4-6', processTime: 60, labours: 1, labourHrs: 1.0 },
+    ]
+  },
+  { 
+    id: 'box_prep', 
+    cableType: 'All', 
+    name: 'Box Preparation', 
+    category: 'Packaging', 
+    specs: [
+      { spec: 'Size 1-2', processTime: 30, labours: 2, labourHrs: 1.0 },
+      { spec: 'Size 3', processTime: 45, labours: 2, labourHrs: 1.5 },
+      { spec: 'Size 4', processTime: 60, labours: 2, labourHrs: 2.0 },
+    ]
+  }
 ];
 
 export const INITIAL_REFERENCE_DATA = {
@@ -212,7 +257,8 @@ export const INITIAL_REFERENCE_DATA = {
   moulding: MOULDING_DATA,
   taping: TAPING_DATA,
   braiding: BRAIDING_DATA,
-  finishing: FINISHING_DATA
+  finishing: FINISHING_DATA,
+  customTables: []
 };
 
 
