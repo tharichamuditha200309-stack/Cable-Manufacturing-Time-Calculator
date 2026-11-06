@@ -69,11 +69,21 @@ export default function Header({
               <div className="absolute right-0 mt-1 w-64 bg-white border border-slate-200 rounded-xl shadow-xl p-1.5 hidden group-hover:block hover:block z-50">
                 <div className="px-2 py-1 text-[10px] font-semibold tracking-wider text-slate-400 uppercase font-sans">Load Cable Specification</div>
                 <button 
+                  onClick={() => onLoadPreset('tandem-10layer')}
+                  className="w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-emerald-50 text-slate-700 transition-colors font-sans font-medium bg-emerald-50/40 border border-emerald-100 mb-1"
+                >
+                  <div className="font-semibold text-emerald-900 flex items-center justify-between">
+                    <span>10-Layer Tandem (32×1)</span>
+                    <span className="text-[10px] bg-emerald-600 text-white px-1.5 py-0.2 rounded">Tandem</span>
+                  </div>
+                  <div className="text-[10px] text-slate-500 font-normal">15m • 50 rnds • 2 Ends • 4 Pairs + 2 Singles</div>
+                </button>
+                <button 
                   onClick={() => onLoadPreset('standard-15m')}
                   className="w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-blue-50 text-slate-700 transition-colors font-sans font-medium"
                 >
                   <div className="font-semibold text-slate-900">Standard 15m Cable</div>
-                  <div className="text-[10px] text-slate-500 font-normal">15m • 50 rnds • Thimble Sz 2 • 32×1 Braid</div>
+                  <div className="text-[10px] text-slate-500 font-normal">15m • 50 rnds • 2 Ends • Thimble Sz 2 • 32×1</div>
                 </button>
                 <button 
                   onClick={() => onLoadPreset('heavy-28m')}

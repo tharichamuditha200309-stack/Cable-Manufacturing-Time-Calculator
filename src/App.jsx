@@ -34,7 +34,7 @@ export default function App() {
   // Moulding Stage
   const [fittingType, setFittingType] = useState('Thimble');
   const [fittingSize, setFittingSize] = useState('2');
-  const [endsCount, setEndsCount] = useState(1);
+  const [endsCount, setEndsCount] = useState(2);
   const [customMouldingLeadTime, setCustomMouldingLeadTime] = useState(null);
 
   // Taping Stage
@@ -49,6 +49,8 @@ export default function App() {
   const [braidingLayers, setBraidingLayers] = useState([
     { id: '1', bobbins: 32, type: 1, customRate: null }
   ]);
+  const [tandemBraidingEnabled, setTandemBraidingEnabled] = useState(true);
+  const [tandemOffset, setTandemOffset] = useState(5);
 
   // Finishing Stage (Optional)
   const [includeFinishing, setIncludeFinishing] = useState(false);
@@ -116,6 +118,8 @@ export default function App() {
       braidingBaseSetup,
       braidingSetupPerLayer,
       braidingLayers,
+      tandemBraidingEnabled,
+      tandemOffset,
       includeFinishing,
       selectedFinishing,
       shiftHours,
@@ -137,6 +141,8 @@ export default function App() {
     braidingBaseSetup,
     braidingSetupPerLayer,
     braidingLayers,
+    tandemBraidingEnabled,
+    tandemOffset,
     includeFinishing,
     selectedFinishing,
     shiftHours,
@@ -163,7 +169,9 @@ export default function App() {
         includeTaping,
         includeBraiding,
         braidingLayersCount: braidingLayers.length,
-        braidingLayers: [...braidingLayers]
+        braidingLayers: [...braidingLayers],
+        tandemBraidingEnabled,
+        tandemOffset
       },
       breakdown: {
         windingTime: results.winding.totalTime,
@@ -203,6 +211,9 @@ export default function App() {
     setFittingType(item.inputs.fittingType);
     setFittingSize(item.inputs.fittingSize);
     if (item.inputs.endsCount !== undefined) setEndsCount(item.inputs.endsCount);
+    else setEndsCount(2);
+    if (item.inputs.tandemBraidingEnabled !== undefined) setTandemBraidingEnabled(item.inputs.tandemBraidingEnabled);
+    if (item.inputs.tandemOffset !== undefined) setTandemOffset(item.inputs.tandemOffset);
     if (item.inputs.includeTaping !== undefined) setIncludeTaping(item.inputs.includeTaping);
     if (item.inputs.includeBraiding !== undefined) setIncludeBraiding(item.inputs.includeBraiding);
     if (item.inputs.braidingLayers && item.inputs.braidingLayers.length > 0) {
@@ -213,15 +224,35 @@ export default function App() {
 
   // Preset Loader
   const handleLoadPreset = (presetId) => {
-    if (presetId === 'standard-15m') {
+    if (presetId === 'tandem-10layer') {
+      setCableName('10-Layer Tandem Braided Cable');
+      setLength(15);
+      setRounds(50);
+      setFittingType('Thimble');
+      setFittingSize('2');
+      setEndsCount(2);
+      setIncludeTaping(true);
+      setIncludeBraiding(true);
+      setTandemBraidingEnabled(true);
+      setTandemOffset(5);
+      setBraidingLayers(Array.from({ length: 10 }, (_, i) => ({
+        id: String(i + 1),
+        bobbins: 32,
+        type: 1,
+        customRate: null
+      })));
+      setIncludeFinishing(false);
+    } else if (presetId === 'standard-15m') {
       setCableName('Standard 15m Control Cable');
       setLength(15);
       setRounds(50);
       setFittingType('Thimble');
       setFittingSize('2');
-      setEndsCount(1);
+      setEndsCount(2);
       setIncludeTaping(true);
       setIncludeBraiding(true);
+      setTandemBraidingEnabled(true);
+      setTandemOffset(5);
       setBraidingLayers([{ id: '1', bobbins: 32, type: 1, customRate: null }]);
       setIncludeFinishing(false);
     } else if (presetId === 'heavy-28m') {
@@ -233,6 +264,8 @@ export default function App() {
       setEndsCount(2);
       setIncludeTaping(true);
       setIncludeBraiding(true);
+      setTandemBraidingEnabled(true);
+      setTandemOffset(5);
       setBraidingLayers([
         { id: '1', bobbins: 32, type: 2, customRate: null },
         { id: '2', bobbins: 32, type: 2, customRate: null }
@@ -245,9 +278,11 @@ export default function App() {
       setRounds(25);
       setFittingType('Thimble');
       setFittingSize('1');
-      setEndsCount(1);
+      setEndsCount(2);
       setIncludeTaping(true);
       setIncludeBraiding(true);
+      setTandemBraidingEnabled(true);
+      setTandemOffset(5);
       setBraidingLayers([{ id: '1', bobbins: 16, type: 1, customRate: null }]);
       setIncludeFinishing(false);
     } else if (presetId === 'long-45m') {
@@ -256,9 +291,11 @@ export default function App() {
       setRounds(200);
       setFittingType('Spool');
       setFittingSize('OD75 - OD120');
-      setEndsCount(1);
+      setEndsCount(2);
       setIncludeTaping(true);
       setIncludeBraiding(true);
+      setTandemBraidingEnabled(true);
+      setTandemOffset(5);
       setBraidingLayers([{ id: '1', bobbins: 64, type: 1, customRate: null }]);
       setIncludeFinishing(false);
     }
@@ -273,7 +310,7 @@ export default function App() {
     setCustomWindingRate(null);
     setFittingType('Thimble');
     setFittingSize('2');
-    setEndsCount(1);
+    setEndsCount(2);
     setCustomMouldingLeadTime(null);
     setIncludeTaping(true);
     setTapingSetup(20);
@@ -281,6 +318,8 @@ export default function App() {
     setIncludeBraiding(true);
     setBraidingBaseSetup(90);
     setBraidingSetupPerLayer(10);
+    setTandemBraidingEnabled(true);
+    setTandemOffset(5);
     setBraidingLayers([{ id: '1', bobbins: 32, type: 1, customRate: null }]);
     setIncludeFinishing(false);
     setSelectedFinishing({});
@@ -386,6 +425,10 @@ export default function App() {
               braidingLayers={braidingLayers}
               setBraidingLayers={setBraidingLayers}
               braidingResults={results.braiding}
+              tandemBraidingEnabled={tandemBraidingEnabled}
+              setTandemBraidingEnabled={setTandemBraidingEnabled}
+              tandemOffset={tandemOffset}
+              setTandemOffset={setTandemOffset}
 
               includeFinishing={includeFinishing}
               setIncludeFinishing={setIncludeFinishing}

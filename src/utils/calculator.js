@@ -82,7 +82,7 @@ export function calculateCableTimes({
   
   fittingType = 'Thimble',
   fittingSize = '2',
-  endsCount = 1,
+  endsCount = 2,
   customMouldingLeadTime = null,
 
   includeTaping = true,
@@ -95,6 +95,8 @@ export function calculateCableTimes({
   braidingLayers = [
     { id: '1', bobbins: 32, type: 1, customRate: null }
   ],
+  tandemBraidingEnabled = true,
+  tandemOffset = 5, // minutes stagger between machine 1 and 2
 
   includeFinishing = false,
   selectedFinishing = {}, // map of { [itemId]: specIndex }
@@ -173,9 +175,15 @@ export function calculateCableTimes({
   // 4. BRAIDING CALCULATION
   let braidingSetupTime = 0;
   let braidingProcessTime = 0;
+  let braidingSequentialProcessTime = 0;
+  let braidingTimeSaved = 0;
   let braidingTotalTime = 0;
   let braidingLabourHours = 0;
   const calculatedLayers = [];
+  const braidingGroups = [];
+
+  const isTandemEnabled = Boolean(tandemBraidingEnabled);
+  const numTandemOffset = Math.max(0, Number(tandemOffset) || 0);
 
   if (includeBraiding && braidingLayers.length > 0) {
     const layerCount = braidingLayers.length;
@@ -183,26 +191,138 @@ export function calculateCableTimes({
     const perLayerSetup = Number(braidingSetupPerLayer ?? braidingData.setupTimePerLayer ?? 10) || 0;
     braidingSetupTime = baseSetup + (layerCount * perLayerSetup);
 
-    braidingLayers.forEach((layer, idx) => {
+    // 1. Calculate raw layer nominal times
+    const rawLayers = braidingLayers.map((layer, idx) => {
       const match = getBraidingRate(numLength, layer.bobbins, layer.type, braidingData);
       const rate = (layer.customRate !== null && layer.customRate !== undefined && layer.customRate !== '')
         ? Number(layer.customRate)
         : Number(match.leadTimePerMeter);
       
       const layerTime = rate * numLength;
-      braidingProcessTime += layerTime;
+      braidingSequentialProcessTime += layerTime;
 
-      calculatedLayers.push({
+      return {
         layerIndex: idx + 1,
-        bobbins: layer.bobbins,
-        type: layer.type,
+        bobbins: Number(layer.bobbins),
+        type: Number(layer.type),
         desc: `${layer.bobbins}×${layer.type}`,
         ratePerMeter: rate,
         layerTime,
         avgBraidingTimePerLayer: match.avgBraidingTimePerLayer
-      });
+      };
     });
 
+    // 2. Group into Tandem Passes (2 machines) vs Single Machine Runs
+    // Rules:
+    // - Consecutive layers with the same bobbin structure run on 2 machines simultaneously.
+    // - Offset of ~5 mins between machine 1 and machine 2.
+    // - Regardless of odd or even layer count, the LAST layer of the cable is ALWAYS braided alone (single).
+    //   Therefore, the last pair cannot include the final layer.
+    let i = 0;
+    while (i < rawLayers.length) {
+      const current = rawLayers[i];
+      const next = (i + 1 < rawLayers.length) ? rawLayers[i + 1] : null;
+
+      // Check pairing eligibility:
+      // Can pair if:
+      // 1. Tandem enabled
+      // 2. Next layer exists
+      // 3. Next layer is NOT the cable's final layer (i + 1 !== rawLayers.length - 1)
+      // 4. Same bobbin structure (bobbins and type match)
+      const isNextTheLastLayer = (i + 1) === (rawLayers.length - 1);
+      const sameStructure = next && 
+        current.bobbins === next.bobbins && 
+        current.type === next.type;
+
+      if (isTandemEnabled && sameStructure && !isNextTheLastLayer) {
+        // TANDEM PAIR RUN (2 Machines)
+        const groupProcessTime = Math.max(current.layerTime, next.layerTime) + numTandemOffset;
+        const sequentialTime = current.layerTime + next.layerTime;
+        const savedTime = Math.max(0, sequentialTime - groupProcessTime);
+
+        const group = {
+          groupIndex: braidingGroups.length + 1,
+          type: 'tandem_pair',
+          desc: `${current.desc} (2 Machines Tandem)`,
+          layerIndices: [current.layerIndex, next.layerIndex],
+          primaryLayer: current.layerIndex,
+          secondaryLayer: next.layerIndex,
+          staggerOffset: numTandemOffset,
+          processTime: groupProcessTime,
+          sequentialTime,
+          timeSaved: savedTime
+        };
+        braidingGroups.push(group);
+        braidingProcessTime += groupProcessTime;
+
+        calculatedLayers.push({
+          ...current,
+          groupIndex: group.groupIndex,
+          runMode: 'tandem_primary',
+          runModeLabel: `Tandem Lead (Machine 1, paired with L${next.layerIndex})`,
+          isTandem: true,
+          pairedWith: next.layerIndex,
+          staggerOffset: 0,
+          effectiveTime: current.layerTime
+        });
+
+        calculatedLayers.push({
+          ...next,
+          groupIndex: group.groupIndex,
+          runMode: 'tandem_secondary',
+          runModeLabel: `Tandem Follower (Machine 2, +${numTandemOffset}m stagger)`,
+          isTandem: true,
+          pairedWith: current.layerIndex,
+          staggerOffset: numTandemOffset,
+          effectiveTime: numTandemOffset
+        });
+
+        i += 2;
+      } else {
+        // SINGLE MACHINE RUN
+        const isFinalLayer = (i === rawLayers.length - 1);
+        let reason = 'Single Machine Run';
+        if (isFinalLayer && rawLayers.length > 1) {
+          reason = 'Final Layer (Always braided alone)';
+        } else if (next && !sameStructure) {
+          reason = 'Different bobbin structure from next layer';
+        } else if (isNextTheLastLayer && sameStructure) {
+          reason = 'Single (Next layer is final layer and must run alone)';
+        }
+
+        const group = {
+          groupIndex: braidingGroups.length + 1,
+          type: 'single',
+          desc: `${current.desc} (Single Machine)`,
+          layerIndices: [current.layerIndex],
+          primaryLayer: current.layerIndex,
+          secondaryLayer: null,
+          staggerOffset: 0,
+          processTime: current.layerTime,
+          sequentialTime: current.layerTime,
+          timeSaved: 0,
+          reason
+        };
+        braidingGroups.push(group);
+        braidingProcessTime += current.layerTime;
+
+        calculatedLayers.push({
+          ...current,
+          groupIndex: group.groupIndex,
+          runMode: 'single',
+          runModeLabel: isFinalLayer && rawLayers.length > 1 ? 'Single (Final Layer Rule)' : 'Single Machine Run',
+          isTandem: false,
+          pairedWith: null,
+          staggerOffset: 0,
+          effectiveTime: current.layerTime,
+          reason
+        });
+
+        i += 1;
+      }
+    }
+
+    braidingTimeSaved = Math.max(0, braidingSequentialProcessTime - braidingProcessTime);
     braidingTotalTime = braidingSetupTime + braidingProcessTime;
     braidingLabourHours = (braidingTotalTime / 60) * 0.95;
   }
@@ -280,13 +400,20 @@ export function calculateCableTimes({
     },
     braiding: {
       enabled: includeBraiding,
+      tandemEnabled: isTandemEnabled,
+      tandemOffset: numTandemOffset,
       baseSetup: Number(braidingBaseSetup ?? braidingData.baseSetupTime ?? 90) || 0,
       setupPerLayer: Number(braidingSetupPerLayer ?? braidingData.setupTimePerLayer ?? 10) || 0,
       setupTime: braidingSetupTime,
       processTime: braidingProcessTime,
+      sequentialProcessTime: braidingSequentialProcessTime,
+      timeSaved: braidingTimeSaved,
       totalTime: braidingTotalTime,
       labourHours: braidingLabourHours,
-      layers: calculatedLayers
+      layers: calculatedLayers,
+      groups: braidingGroups,
+      pairCount: braidingGroups.filter(g => g.type === 'tandem_pair').length,
+      singleCount: braidingGroups.filter(g => g.type === 'single').length
     },
     finishing: {
       enabled: includeFinishing,

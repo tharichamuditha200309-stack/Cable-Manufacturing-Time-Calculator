@@ -236,23 +236,62 @@ export default function StageBreakdown({ results, onOpenDataModal }) {
                 </div>
                 <div className="flex justify-between text-slate-300">
                   <span className="text-slate-400">Configured Layers:</span>
-                  <span className="font-mono text-emerald-300">{braiding.layers.length} Layer(s)</span>
+                  <span className="font-mono text-emerald-300">
+                    {braiding.layers.length} Layer(s) {braiding.groups && `• ${braiding.pairCount || 0} Tandem Pairs, ${braiding.singleCount || 0} Single Runs`}
+                  </span>
                 </div>
                 <div className="flex justify-between text-slate-300">
-                  <span className="text-slate-400">Cumulative Process Run Time:</span>
+                  <span className="text-slate-400">Effective Process Run Time:</span>
                   <span className="font-mono text-emerald-400 font-semibold">{braiding.processTime.toFixed(1)} mins</span>
                 </div>
+                {braiding.timeSaved > 0 && (
+                  <div className="flex justify-between text-slate-300">
+                    <span className="text-slate-400">Time Saved by 2 Machines:</span>
+                    <span className="font-mono text-teal-300 font-semibold">-{braiding.timeSaved.toFixed(1)} mins ({formatMinutes(braiding.timeSaved)})</span>
+                  </div>
+                )}
               </div>
 
-              {/* Layer specs summary */}
-              <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800 text-[11px] font-mono text-slate-300 space-y-1">
-                <div className="text-slate-500 text-[10px] uppercase font-semibold">Layer Breakdown:</div>
-                {braiding.layers.map((l, i) => (
-                  <div key={i} className="flex justify-between text-[11px]">
-                    <span className="text-slate-400">Layer {l.layerIndex} ({l.desc}):</span>
-                    <span>{l.ratePerMeter} min/m × {inputs.length}m = <strong className="text-emerald-300">{l.layerTime.toFixed(1)}m</strong></span>
-                  </div>
-                ))}
+              {/* Layer specs summary & Tandem Grouping */}
+              <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800 text-[11px] font-mono text-slate-300 space-y-1.5">
+                <div className="text-slate-500 text-[10px] uppercase font-semibold flex items-center justify-between">
+                  <span>Braiding Machine Passes:</span>
+                  {braiding.tandemEnabled && <span className="text-emerald-400">Tandem Mode Active</span>}
+                </div>
+                {braiding.groups && braiding.groups.length > 0 ? (
+                  braiding.groups.map((g, i) => (
+                    <div key={i} className="flex justify-between items-center text-[11px] py-0.5 border-b border-slate-900 last:border-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className={`px-1.5 py-0.2 rounded text-[10px] font-sans ${
+                          g.type === 'tandem_pair' ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' : 'bg-slate-800 text-slate-300'
+                        }`}>
+                          {g.type === 'tandem_pair' ? 'Tandem 2-Machine' : 'Single Machine'}
+                        </span>
+                        <span className="text-slate-300">
+                          {g.type === 'tandem_pair' 
+                            ? `Layers ${g.layerIndices.join(' & ')} (${g.desc})`
+                            : `Layer ${g.primaryLayer} (${g.desc})`}
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <strong className="text-emerald-300">{g.processTime.toFixed(1)}m</strong>
+                        {g.timeSaved > 0 && (
+                          <span className="text-[10px] text-teal-400 ml-1.5">(-{g.timeSaved.toFixed(0)}m saved)</span>
+                        )}
+                        {g.reason && (
+                          <span className="text-[10px] text-amber-400/80 ml-1.5 font-sans">[{g.reason}]</span>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  braiding.layers.map((l, i) => (
+                    <div key={i} className="flex justify-between text-[11px]">
+                      <span className="text-slate-400">Layer {l.layerIndex} ({l.desc}):</span>
+                      <span>{l.ratePerMeter} min/m × {inputs.length}m = <strong className="text-emerald-300">{l.layerTime.toFixed(1)}m</strong></span>
+                    </div>
+                  ))
+                )}
               </div>
 
               <div className="text-[11px] text-slate-500 flex items-center justify-between pt-1">

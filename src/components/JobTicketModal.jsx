@@ -86,7 +86,7 @@ export default function JobTicketModal({ isOpen, onClose, results, cableName }) 
             <div>
               <div className="text-[10px] text-slate-500 uppercase">End Fittings</div>
               <div className="font-bold text-slate-950 text-sm">{inputs.fittingType}</div>
-              <div className="text-[10px] text-slate-500">{inputs.fittingSize} ({inputs.endsCount} end)</div>
+              <div className="text-[10px] text-slate-500">{inputs.fittingSize} ({inputs.endsCount} end{inputs.endsCount > 1 ? 's' : ''})</div>
             </div>
             <div>
               <div className="text-[10px] text-slate-500 uppercase">Braiding Layers</div>
@@ -94,7 +94,11 @@ export default function JobTicketModal({ isOpen, onClose, results, cableName }) 
                 {braiding.enabled ? `${braiding.layers.length} Layer(s)` : 'None'}
               </div>
               <div className="text-[10px] text-slate-500">
-                {braiding.enabled ? braiding.layers.map(l => l.desc).join(', ') : 'Bypassed'}
+                {braiding.enabled ? (
+                  braiding.pairCount > 0 
+                    ? `${braiding.pairCount} Tandem Pairs + ${braiding.singleCount} Single Runs`
+                    : braiding.layers.map(l => l.desc).join(', ')
+                ) : 'Bypassed'}
               </div>
             </div>
           </div>
@@ -182,10 +186,12 @@ export default function JobTicketModal({ isOpen, onClose, results, cableName }) 
                   <tr>
                     <td className="p-2 border-r border-slate-300 font-bold">40</td>
                     <td className="p-2 border-r border-slate-300 font-sans font-semibold">
-                      Braiding ({braiding.layers.length} Layers)
+                      Braiding ({braiding.layers.length} Layers{braiding.pairCount ? ` • ${braiding.pairCount} Tandem Pairs` : ''})
                     </td>
                     <td className="p-2 border-r border-slate-300 text-[11px]">
-                      {braiding.layers.map(l => `${l.desc}`).join(', ')}
+                      {braiding.groups && braiding.groups.length > 0 
+                        ? braiding.groups.map(g => g.type === 'tandem_pair' ? `[L${g.layerIndices.join('+L')}: Tandem]` : `[L${g.primaryLayer}: Single]`).join(', ')
+                        : braiding.layers.map(l => `${l.desc}`).join(', ')}
                     </td>
                     <td className="p-2 border-r border-slate-300 text-right">{braiding.setupTime}m</td>
                     <td className="p-2 border-r border-slate-300 text-right">{braiding.processTime.toFixed(1)}m</td>

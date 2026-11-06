@@ -49,7 +49,7 @@ export default function OverallSummaryPanel({
       active: moulding.fittingType !== 'None',
       color: 'text-violet-600',
       badgeColor: 'bg-violet-50 text-violet-700 border-violet-200',
-      formula: moulding.fittingType === 'None' ? 'No moulding' : `${moulding.fittingType} ${moulding.fittingSize} (${moulding.endsCount} end)`
+      formula: moulding.fittingType === 'None' ? 'No moulding' : `${moulding.fittingType} ${moulding.fittingSize} (${moulding.endsCount} end${moulding.endsCount > 1 ? 's' : ''})`
     },
     {
       id: 'taping',
@@ -67,7 +67,9 @@ export default function OverallSummaryPanel({
       active: braiding.enabled,
       color: 'text-emerald-600',
       badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      formula: braiding.enabled ? `${braiding.setupTime}m setup (${braiding.layers.length} layers) + run` : 'Bypassed'
+      formula: braiding.enabled 
+        ? `${braiding.setupTime}m setup (${braiding.layers.length} layers${braiding.pairCount ? `, ${braiding.pairCount} tandem` : ''}) + run` 
+        : 'Bypassed'
     },
     ...(finishing.enabled && finishing.totalTime > 0 ? [{
       id: 'finishing',
