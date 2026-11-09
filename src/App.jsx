@@ -362,7 +362,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#d8dee6] text-slate-900 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#848e94] text-slate-900 flex flex-col font-sans">
       
       {/* Top Application Header */}
       <Header
@@ -458,10 +458,10 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="mt-auto border-t border-slate-300 bg-[#e5eaef] py-4 text-center text-xs text-slate-600">
+      <footer className="mt-auto border-t border-[#6d777d] bg-[#768087] py-4 text-center text-xs text-slate-100">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span className="font-medium text-slate-700">Cable Manufacturing Overall Time Calculator</span>
-          <span className="font-mono text-slate-500">
+          <span className="font-semibold text-white">Cable Manufacturing Overall Time Calculator</span>
+          <span className="font-mono text-slate-200">
             Overall Time = Winding (30m + Speed×L×R) + Moulding + Taping (20m + Speed×L) + Braiding (90m + 10m/layer + Speed×L)
           </span>
         </div>

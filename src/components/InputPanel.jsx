@@ -131,16 +131,16 @@ export default function InputPanel({
   };
 
   return (
-    <div className="bg-[#e5eaef] border border-slate-300 rounded-2xl p-6 shadow-sm space-y-6">
+    <div className="bg-[#939da4] border border-[#768087] rounded-2xl p-6 shadow-md space-y-6">
       
       {/* Header with Title and Advanced Toggle (Poppins SemiBold for Heading) */}
-      <div className="flex items-center justify-between pb-4 border-b border-slate-300">
+      <div className="flex items-center justify-between pb-4 border-b border-[#768087]/80">
         <div>
           <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2 font-heading">
             <SlidersHorizontal className="w-5 h-5 text-blue-600" />
             Cable Specifications & Stage Parameters
           </h2>
-          <p className="text-xs text-slate-500 mt-0.5 font-sans font-normal">
+          <p className="text-xs text-slate-700 mt-0.5 font-sans font-normal">
             Enter cable specifications to calculate the overall manufacturing time
           </p>
         </div>

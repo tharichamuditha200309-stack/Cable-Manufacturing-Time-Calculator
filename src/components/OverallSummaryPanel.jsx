@@ -109,13 +109,13 @@ Labour Hours:   ${totals.totalLabourHours.toFixed(1)} hrs (~${totals.productionS
   };
 
   return (
-    <div className="bg-[#e5eaef] border border-slate-300 rounded-2xl p-6 shadow-sm space-y-6 sticky top-20">
+    <div className="bg-[#939da4] border border-[#768087] rounded-2xl p-6 shadow-md space-y-6 sticky top-20">
       
       {/* Top Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-slate-300">
+      <div className="flex items-center justify-between pb-4 border-b border-[#768087]/80">
         <div>
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-blue-600 flex items-center gap-1.5 font-heading">
-            <Clock className="w-4 h-4 text-blue-600" /> Manufacturing Lead Time
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-blue-700 flex items-center gap-1.5 font-heading">
+            <Clock className="w-4 h-4 text-blue-700" /> Manufacturing Lead Time
           </span>
           <h2 className="text-xl font-semibold text-slate-900 tracking-tight mt-0.5 font-heading">
             Overall Cable Time
@@ -185,7 +185,7 @@ Labour Hours:   ${totals.totalLabourHours.toFixed(1)} hrs (~${totals.productionS
             <Plus className="w-3.5 h-3.5 text-blue-600" />
             Summation of Process Times
           </span>
-          <span className="text-[11px] text-slate-400 font-sans font-normal">
+          <span className="text-[11px] text-slate-700 font-sans font-medium">
             Winding + Moulding + Taping + Braiding
           </span>
         </div>

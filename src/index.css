@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-[#d8dee6] text-slate-900 font-sans antialiased;
+    @apply bg-[#848e94] text-slate-900 font-sans antialiased;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 
@@ -14,20 +14,20 @@
   }
 }
 
-/* Light subtle scrollbars matching ash theme */
+/* Scrollbars matching darker ash theme */
 ::-webkit-scrollbar {
   width: 7px;
   height: 7px;
 }
 ::-webkit-scrollbar-track {
-  background: #cbd3dc;
+  background: #757f86;
 }
 ::-webkit-scrollbar-thumb {
-  background: #9aa7b5;
+  background: #555d64;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #7a8a9a;
+  background: #3e4449;
 }
 
 /* Print styling for shop-floor job traveler tickets */
