@@ -362,7 +362,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#edf4fb] text-slate-900 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#d8dee6] text-slate-900 flex flex-col font-sans">
       
       {/* Top Application Header */}
       <Header
@@ -458,7 +458,7 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="mt-auto border-t border-slate-200 bg-white py-4 text-center text-xs text-slate-500">
+      <footer className="mt-auto border-t border-slate-300 bg-[#e5eaef] py-4 text-center text-xs text-slate-600">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <span className="font-medium text-slate-700">Cable Manufacturing Overall Time Calculator</span>
           <span className="font-mono text-slate-500">

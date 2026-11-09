@@ -131,10 +131,10 @@ export default function InputPanel({
   };
 
   return (
-    <div className="bg-[#f0f6fc] border border-blue-200/80 rounded-2xl p-6 shadow-sm space-y-6">
+    <div className="bg-[#e5eaef] border border-slate-300 rounded-2xl p-6 shadow-sm space-y-6">
       
       {/* Header with Title and Advanced Toggle (Poppins SemiBold for Heading) */}
-      <div className="flex items-center justify-between pb-4 border-b border-blue-200/60">
+      <div className="flex items-center justify-between pb-4 border-b border-slate-300">
         <div>
           <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2 font-heading">
             <SlidersHorizontal className="w-5 h-5 text-blue-600" />
@@ -196,14 +196,14 @@ export default function InputPanel({
               <span className="absolute right-3 top-2.5 text-xs text-slate-400 pointer-events-none font-sans font-normal">m</span>
             </div>
             {/* Quick length presets */}
-            <div className="flex items-center gap-1.5 mt-2">
+            <div className="flex flex-wrap items-center gap-1 mt-2">
               <span className="text-[10px] font-medium text-slate-400 font-sans">Quick:</span>
               {[5, 10, 15, 20, 25, 35, 45].map((val) => (
                 <button
                   key={val}
                   type="button"
                   onClick={() => setLength(val)}
-                  className={`px-2 py-0.5 text-[10px] rounded font-sans transition-colors border ${
+                  className={`px-1.5 py-0.5 text-[10px] rounded font-sans transition-colors border shrink-0 ${
                     Number(length) === val
                       ? 'bg-blue-600 text-white font-medium border-blue-600'
                       : 'bg-white text-slate-600 hover:text-slate-900 border-slate-200 hover:bg-blue-50 font-normal'
@@ -239,14 +239,14 @@ export default function InputPanel({
               <span className="absolute right-3 top-2.5 text-xs text-slate-400 pointer-events-none font-sans font-normal">rnds</span>
             </div>
             {/* Quick rounds presets */}
-            <div className="flex items-center gap-1.5 mt-2">
+            <div className="flex flex-wrap items-center gap-1 mt-2">
               <span className="text-[10px] font-medium text-slate-400 font-sans">Quick:</span>
               {[25, 50, 75, 100, 150, 200].map((val) => (
                 <button
                   key={val}
                   type="button"
                   onClick={() => setRounds(val)}
-                  className={`px-2 py-0.5 text-[10px] rounded font-sans transition-colors border ${
+                  className={`px-1.5 py-0.5 text-[10px] rounded font-sans transition-colors border shrink-0 ${
                     Number(rounds) === val
                       ? 'bg-blue-600 text-white font-medium border-blue-600'
                       : 'bg-white text-slate-600 hover:text-slate-900 border-slate-200 hover:bg-blue-50 font-normal'

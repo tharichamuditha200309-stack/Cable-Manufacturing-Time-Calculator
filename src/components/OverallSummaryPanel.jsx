@@ -109,10 +109,10 @@ Labour Hours:   ${totals.totalLabourHours.toFixed(1)} hrs (~${totals.productionS
   };
 
   return (
-    <div className="bg-[#f0f6fc] border border-blue-200/80 rounded-2xl p-6 shadow-sm space-y-6 sticky top-20">
+    <div className="bg-[#e5eaef] border border-slate-300 rounded-2xl p-6 shadow-sm space-y-6 sticky top-20">
       
       {/* Top Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-blue-200/60">
+      <div className="flex items-center justify-between pb-4 border-b border-slate-300">
         <div>
           <span className="text-[11px] font-semibold uppercase tracking-wider text-blue-600 flex items-center gap-1.5 font-heading">
             <Clock className="w-4 h-4 text-blue-600" /> Manufacturing Lead Time
@@ -275,7 +275,7 @@ Labour Hours:   ${totals.totalLabourHours.toFixed(1)} hrs (~${totals.productionS
       </div>
 
       {/* Actions: Save to History, Copy Summary, Job Ticket, Export */}
-      <div className="space-y-2 pt-2 border-t border-blue-200/60 font-sans">
+      <div className="space-y-2 pt-2 border-t border-slate-300 font-sans">
         
         {/* Save to History Button */}
         <button
