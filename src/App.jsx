@@ -6,7 +6,7 @@ import DataReferenceModal from './components/DataReferenceModal.jsx';
 import JobTicketModal from './components/JobTicketModal.jsx';
 import ProcessHistoryModal from './components/ProcessHistoryModal.jsx';
 import { calculateCableTimes } from './utils/calculator.js';
-import { INITIAL_REFERENCE_DATA } from './data/manufacturingData.js';
+import { INITIAL_REFERENCE_DATA, REFERENCE_DATA_VERSION } from './data/manufacturingData.js';
 
 export default function App() {
   // Cable Metadata
@@ -17,7 +17,13 @@ export default function App() {
   const [referenceData, setReferenceData] = useState(() => {
     try {
       const saved = localStorage.getItem('cable_calc_reference_data');
-      return saved ? JSON.parse(saved) : INITIAL_REFERENCE_DATA;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed._version === REFERENCE_DATA_VERSION) {
+          return parsed;
+        }
+      }
+      return INITIAL_REFERENCE_DATA;
     } catch {
       return INITIAL_REFERENCE_DATA;
     }
@@ -56,6 +62,9 @@ export default function App() {
   const [includeFinishing, setIncludeFinishing] = useState(false);
   const [selectedFinishing, setSelectedFinishing] = useState({});
 
+  // Custom Process Tables (Optional dynamically added tables)
+  const [selectedCustomTables, setSelectedCustomTables] = useState({});
+
   // Modals
   const [isDataModalOpen, setIsDataModalOpen] = useState(false);
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
@@ -83,6 +92,21 @@ export default function App() {
   // Handle saving modified reference data
   const handleSaveReferenceData = (newReferenceData) => {
     setReferenceData(newReferenceData);
+    
+    // Immediately synchronize active stage setup times if they were updated in rate tables
+    if (newReferenceData?.winding?.fixedSetupTime !== undefined) {
+      setWindingSetup(newReferenceData.winding.fixedSetupTime);
+    }
+    if (newReferenceData?.taping?.fixedSetupTime !== undefined) {
+      setTapingSetup(newReferenceData.taping.fixedSetupTime);
+    }
+    if (newReferenceData?.braiding?.baseSetupTime !== undefined) {
+      setBraidingBaseSetup(newReferenceData.braiding.baseSetupTime);
+    }
+    if (newReferenceData?.braiding?.setupTimePerLayer !== undefined) {
+      setBraidingSetupPerLayer(newReferenceData.braiding.setupTimePerLayer);
+    }
+
     try {
       localStorage.setItem('cable_calc_reference_data', JSON.stringify(newReferenceData));
     } catch (e) {
@@ -93,6 +117,10 @@ export default function App() {
   // Handle resetting reference data to factory defaults
   const handleResetReferenceData = () => {
     setReferenceData(INITIAL_REFERENCE_DATA);
+    setWindingSetup(INITIAL_REFERENCE_DATA.winding.fixedSetupTime);
+    setTapingSetup(INITIAL_REFERENCE_DATA.taping.fixedSetupTime);
+    setBraidingBaseSetup(INITIAL_REFERENCE_DATA.braiding.baseSetupTime);
+    setBraidingSetupPerLayer(INITIAL_REFERENCE_DATA.braiding.setupTimePerLayer);
     try {
       localStorage.removeItem('cable_calc_reference_data');
     } catch (e) {
@@ -122,6 +150,7 @@ export default function App() {
       tandemOffset,
       includeFinishing,
       selectedFinishing,
+      selectedCustomTables,
       shiftHours,
       referenceData
     });
@@ -145,6 +174,7 @@ export default function App() {
     tandemOffset,
     includeFinishing,
     selectedFinishing,
+    selectedCustomTables,
     shiftHours,
     referenceData
   ]);
@@ -434,6 +464,8 @@ export default function App() {
               setIncludeFinishing={setIncludeFinishing}
               selectedFinishing={selectedFinishing}
               setSelectedFinishing={setSelectedFinishing}
+              selectedCustomTables={selectedCustomTables}
+              setSelectedCustomTables={setSelectedCustomTables}
               referenceData={referenceData}
             />
           </div>

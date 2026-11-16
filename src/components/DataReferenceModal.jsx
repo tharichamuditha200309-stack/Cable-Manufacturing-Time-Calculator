@@ -53,21 +53,21 @@ export default function DataReferenceModal({
   // Handlers for modifying values in local copy
   const handleWindingRangeChange = (index, field, value) => {
     const updated = JSON.parse(JSON.stringify(localData));
-    updated.winding.lengthRanges[index][field] = Number(value);
+    updated.winding.lengthRanges[index][field] = value === '' ? '' : Number(value);
     setLocalData(updated);
   };
 
   const handleWindingSetupChange = (value) => {
     const updated = JSON.parse(JSON.stringify(localData));
-    updated.winding.fixedSetupTime = Number(value);
+    updated.winding.fixedSetupTime = value === '' ? '' : Number(value);
     setLocalData(updated);
   };
 
   const handleMouldingItemChange = (type, index, field, value) => {
     const updated = JSON.parse(JSON.stringify(localData));
-    const num = Number(value);
+    const num = value === '' ? '' : Number(value);
     updated.moulding.items[type][index][field] = num;
-    if (field === 'leadTimeMin') {
+    if (field === 'leadTimeMin' && num !== '') {
       updated.moulding.items[type][index].leadTimeHrs = Number((num / 60).toFixed(2));
       updated.moulding.items[type][index].labourHrs = Number((num / 60).toFixed(2));
     }
@@ -76,25 +76,25 @@ export default function DataReferenceModal({
 
   const handleTapingRangeChange = (index, field, value) => {
     const updated = JSON.parse(JSON.stringify(localData));
-    updated.taping.lengthRanges[index][field] = Number(value);
+    updated.taping.lengthRanges[index][field] = value === '' ? '' : Number(value);
     setLocalData(updated);
   };
 
   const handleTapingSetupChange = (value) => {
     const updated = JSON.parse(JSON.stringify(localData));
-    updated.taping.fixedSetupTime = Number(value);
+    updated.taping.fixedSetupTime = value === '' ? '' : Number(value);
     setLocalData(updated);
   };
 
   const handleBraidingSetupChange = (field, value) => {
     const updated = JSON.parse(JSON.stringify(localData));
-    updated.braiding[field] = Number(value);
+    updated.braiding[field] = value === '' ? '' : Number(value);
     setLocalData(updated);
   };
 
   const handleBraidingLayerChange = (index, field, value) => {
     const updated = JSON.parse(JSON.stringify(localData));
-    updated.braiding.layerDetails[index][field] = Number(value);
+    updated.braiding.layerDetails[index][field] = value === '' ? '' : Number(value);
     setLocalData(updated);
   };
 

@@ -100,6 +100,7 @@ export function calculateCableTimes({
 
   includeFinishing = false,
   selectedFinishing = {}, // map of { [itemId]: specIndex }
+  selectedCustomTables = {}, // map of { [tableId]: { enabled: boolean, rowIndices: number[] } }
   shiftHours = 8,
   referenceData = null
 }) {
@@ -334,28 +335,69 @@ export function calculateCableTimes({
 
   if (includeFinishing) {
     Object.entries(selectedFinishing).forEach(([itemId, specIdx]) => {
-      if (specIdx !== null && specIdx !== undefined && specIdx !== -1) {
+      if (specIdx !== null && specIdx !== undefined && specIdx !== -1 && specIdx !== '') {
         const op = finishingData.find(f => f.id === itemId);
-        if (op && op.specs[specIdx]) {
+        if (op && op.specs && op.specs[specIdx]) {
           const spec = op.specs[specIdx];
-          finishingTotalTime += spec.processTime;
-          finishingLabourHours += spec.labourHrs;
+          finishingTotalTime += Number(spec.processTime) || 0;
+          finishingLabourHours += Number(spec.labourHrs) || 0;
           finishingItems.push({
             name: op.name,
             spec: spec.spec,
-            time: spec.processTime,
-            labourHrs: spec.labourHrs
+            time: Number(spec.processTime) || 0,
+            labourHrs: Number(spec.labourHrs) || 0
           });
         }
       }
     });
   }
 
+  // 6. CUSTOM PROCESS TABLES CALCULATION
+  let customTablesTotalTime = 0;
+  let customTablesSetupTime = 0;
+  let customTablesProcessTime = 0;
+  let customTablesLabourHours = 0;
+  const customTableItems = [];
+
+  const customTablesList = referenceData?.customTables || [];
+  if (customTablesList.length > 0 && selectedCustomTables) {
+    customTablesList.forEach(table => {
+      const selection = selectedCustomTables[table.id];
+      if (selection && selection.enabled) {
+        const tableSetup = Number(table.fixedSetupTime) || 0;
+        customTablesSetupTime += tableSetup;
+
+        let tableRowTime = 0;
+        let tableLabour = 0;
+        const selectedIndices = selection.rowIndices || [];
+        selectedIndices.forEach(idx => {
+          const row = table.rows?.[idx];
+          if (row) {
+            const time = Number(row.processTime) || 0;
+            const labour = Number(row.labourHrs) || ((time / 60) * (Number(row.labours) || 1));
+            tableRowTime += time;
+            tableLabour += labour;
+            customTableItems.push({
+              tableName: table.name,
+              item: row.item,
+              spec: row.spec,
+              time,
+              labourHrs: labour
+            });
+          }
+        });
+        customTablesProcessTime += tableRowTime;
+        customTablesTotalTime += (tableSetup + tableRowTime);
+        customTablesLabourHours += tableLabour;
+      }
+    });
+  }
+
   // TOTALS
-  const grandTotalMinutes = windingTotalTime + mouldingLeadTime + tapingTotalTime + braidingTotalTime + finishingTotalTime;
-  const totalSetupTime = windingSetupTime + tapingSetupTime + braidingSetupTime;
-  const totalProcessTime = windingProcessTime + mouldingLeadTime + tapingProcessTime + braidingProcessTime + finishingTotalTime;
-  const totalLabourHours = windingLabourHours + mouldingLabourHours + tapingLabourHours + braidingLabourHours + finishingLabourHours;
+  const grandTotalMinutes = windingTotalTime + mouldingLeadTime + tapingTotalTime + braidingTotalTime + finishingTotalTime + customTablesTotalTime;
+  const totalSetupTime = windingSetupTime + tapingSetupTime + braidingSetupTime + customTablesSetupTime;
+  const totalProcessTime = windingProcessTime + mouldingLeadTime + tapingProcessTime + braidingProcessTime + finishingTotalTime + customTablesProcessTime;
+  const totalLabourHours = windingLabourHours + mouldingLabourHours + tapingLabourHours + braidingLabourHours + finishingLabourHours + customTablesLabourHours;
 
   const totalHours = grandTotalMinutes / 60;
   const shiftVal = Math.max(1, Number(shiftHours) || 8);
@@ -420,6 +462,14 @@ export function calculateCableTimes({
       totalTime: finishingTotalTime,
       labourHours: finishingLabourHours,
       items: finishingItems
+    },
+    customTables: {
+      enabled: customTablesTotalTime > 0,
+      totalTime: customTablesTotalTime,
+      setupTime: customTablesSetupTime,
+      processTime: customTablesProcessTime,
+      labourHours: customTablesLabourHours,
+      items: customTableItems
     },
     totals: {
       grandTotalMinutes,

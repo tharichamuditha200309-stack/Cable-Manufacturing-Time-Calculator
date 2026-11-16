@@ -252,7 +252,10 @@ export const FINISHING_DATA = [
   }
 ];
 
+export const REFERENCE_DATA_VERSION = '2026.11.11_v1';
+
 export const INITIAL_REFERENCE_DATA = {
+  _version: REFERENCE_DATA_VERSION,
   winding: WINDING_DATA,
   moulding: MOULDING_DATA,
   taping: TAPING_DATA,
