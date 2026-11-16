@@ -58,6 +58,204 @@ export function getBraidingRate(length, bobbins, type, braidingData = BRAIDING_D
 }
 
 /**
+ * Auto-match finishing operations based on previous cable parameters
+ */
+export function autoMatchFinishingOperations({
+  cableType = 'Torquelite',
+  length = 15,
+  rounds = 50,
+  fittingType = 'Thimble',
+  fittingSize = '2',
+  cableOD = 25,
+  finishingData = FINISHING_DATA,
+  userSelections = {} // { [opId]: { enabled: boolean, specIndex: number } }
+}) {
+  const numLength = Number(length) || 0;
+  const numRounds = Number(rounds) || 0;
+  const numOD = Number(cableOD) || 0;
+  const fittingNum = Number(String(fittingSize).replace(/\D+/g, '')) || 2;
+  const isTorquelite = cableType === 'Torquelite';
+  const isTorqueliteFlex = cableType === 'Torquelite Flex';
+  const isFibrelite = cableType === 'Fibrelite';
+
+  const results = [];
+
+  (finishingData || FINISHING_DATA).forEach((op) => {
+    let isApplicable = false;
+    let matchedSpecIndex = 0;
+    let matchedSpec = null;
+    let note = '';
+    let autoTime = 0;
+    let autoLabourHrs = 0;
+
+    if (op.id === 'cutback_shrink') {
+      if (isTorquelite) {
+        isApplicable = true;
+        const idx = op.specs.findIndex(s => s.minBound <= fittingNum && fittingNum <= s.maxBound);
+        matchedSpecIndex = idx !== -1 ? idx : Math.min(op.specs.length - 1, Math.max(0, fittingNum - 2));
+        matchedSpec = op.specs[matchedSpecIndex] || op.specs[0];
+        note = `Auto-matched to Fitting Size ${fittingNum}`;
+      } else {
+        isApplicable = false;
+        note = 'Only for Torquelite cables';
+      }
+    } else if (op.id === 'cutback_flex') {
+      if (isTorqueliteFlex) {
+        isApplicable = true;
+        matchedSpecIndex = 0;
+        matchedSpec = op.specs[0];
+        note = 'Standard Cut back for Torquelite Flex';
+      } else {
+        isApplicable = false;
+        note = 'Only for Torquelite Flex cables';
+      }
+    } else if (op.id === 'testing') {
+      isApplicable = true;
+      matchedSpecIndex = 0;
+      matchedSpec = op.specs[0];
+      note = 'Standard Testing for all cable types';
+    } else if (op.id === 'breaking') {
+      isApplicable = true;
+      let idx = 0;
+      if (numRounds <= 50) idx = 0;
+      else if (numRounds <= 100) idx = 1 < op.specs.length ? 1 : 0;
+      else if (numRounds <= 500) idx = 2 < op.specs.length ? 2 : 0;
+      else idx = op.specs.length - 1;
+
+      matchedSpecIndex = idx;
+      matchedSpec = op.specs[matchedSpecIndex] || op.specs[0];
+      note = `Auto-matched to ${numRounds} rounds (${matchedSpec.spec})`;
+    } else if (op.id === 'coiling') {
+      isApplicable = true;
+      let idx = 0;
+      if (numLength <= 10) idx = 0;
+      else if (numLength <= 20) idx = 1 < op.specs.length ? 1 : 0;
+      else if (numLength <= 30) idx = 2 < op.specs.length ? 2 : 1;
+      else idx = 3 < op.specs.length ? 3 : op.specs.length - 1;
+
+      matchedSpecIndex = idx;
+      matchedSpec = op.specs[matchedSpecIndex] || op.specs[0];
+      note = `Auto-matched to ${numLength}m length (${matchedSpec.spec})`;
+    } else if (op.id === 'polishing') {
+      if (fittingType === 'None') {
+        isApplicable = false;
+        note = 'No moulding fitting selected';
+      } else {
+        isApplicable = true;
+        if (fittingNum <= 1) {
+          matchedSpecIndex = 0;
+          matchedSpec = op.specs[0] || { spec: 'Size 1', processTime: 0, labourHrs: 0 };
+          note = 'Size 1 fitting — No polishing required (0 min)';
+        } else if (fittingNum <= 3) {
+          matchedSpecIndex = 1 < op.specs.length ? 1 : 0;
+          matchedSpec = op.specs[matchedSpecIndex];
+          note = `Auto-matched to Fitting Size ${fittingNum} (Size 2-3)`;
+        } else {
+          matchedSpecIndex = 2 < op.specs.length ? 2 : op.specs.length - 1;
+          matchedSpec = op.specs[matchedSpecIndex];
+          note = `Auto-matched to Fitting Size ${fittingNum} (Size 4-6)`;
+        }
+      }
+    } else if (op.id === 'box_prep_flex_fibre') {
+      if (isFibrelite || isTorqueliteFlex) {
+        isApplicable = true;
+        if (numOD > 56) {
+          matchedSpecIndex = -1;
+          matchedSpec = { spec: 'Wooden Box', processTime: 0, labours: 0, labourHrs: 0 };
+          note = `Wooden Box (Cable OD ${numOD}mm > 56mm — 0 min required)`;
+        } else if (numOD > 52) {
+          matchedSpecIndex = 2 < op.specs.length ? 2 : op.specs.length - 1;
+          matchedSpec = op.specs[matchedSpecIndex];
+          note = `Auto-matched to OD ${numOD}mm (52-56mm box)`;
+        } else if (numOD > 32) {
+          matchedSpecIndex = 1 < op.specs.length ? 1 : 0;
+          matchedSpec = op.specs[matchedSpecIndex];
+          note = `Auto-matched to OD ${numOD}mm (32-52mm box)`;
+        } else {
+          matchedSpecIndex = 0;
+          matchedSpec = op.specs[0];
+          note = `Auto-matched to OD ${numOD}mm (0-32mm box)`;
+        }
+      } else {
+        isApplicable = false;
+        note = 'Only for Fibrelite or Torquelite Flex cables';
+      }
+    } else if (op.id === 'box_prep_torquelite') {
+      if (isTorquelite) {
+        isApplicable = true;
+        if (numOD > 28) {
+          matchedSpecIndex = -1;
+          matchedSpec = { spec: 'Wooden Box', processTime: 0, labours: 0, labourHrs: 0 };
+          note = `Wooden Box (Cable OD ${numOD}mm > 28mm — 0 min required)`;
+        } else if (numOD > 26) {
+          matchedSpecIndex = 2 < op.specs.length ? 2 : op.specs.length - 1;
+          matchedSpec = op.specs[matchedSpecIndex];
+          note = `Auto-matched to OD ${numOD}mm (26-28mm box)`;
+        } else if (numOD > 16) {
+          matchedSpecIndex = 1 < op.specs.length ? 1 : 0;
+          matchedSpec = op.specs[matchedSpecIndex];
+          note = `Auto-matched to OD ${numOD}mm (16-26mm box)`;
+        } else {
+          matchedSpecIndex = 0;
+          matchedSpec = op.specs[0];
+          note = `Auto-matched to OD ${numOD}mm (0-16mm box)`;
+        }
+      } else {
+        isApplicable = false;
+        note = 'Only for Torquelite cables';
+      }
+    } else {
+      isApplicable = true;
+      matchedSpecIndex = 0;
+      matchedSpec = op.specs?.[0] || { spec: 'Standard', processTime: 30, labourHrs: 1 };
+      note = 'Default specification';
+    }
+
+    const userOverride = userSelections[op.id];
+    let isEnabled = isApplicable;
+    let effectiveSpec = matchedSpec;
+    let effectiveIndex = matchedSpecIndex;
+
+    if (userOverride !== undefined) {
+      if (typeof userOverride === 'boolean') {
+        isEnabled = userOverride;
+      } else if (typeof userOverride === 'object' && userOverride !== null) {
+        if (userOverride.enabled !== undefined) isEnabled = userOverride.enabled;
+        if (userOverride.specIndex !== undefined && userOverride.specIndex !== null && userOverride.specIndex !== -1) {
+          effectiveIndex = userOverride.specIndex;
+          effectiveSpec = op.specs[effectiveIndex] || matchedSpec;
+          note = `User selected: ${effectiveSpec?.spec}`;
+        }
+      } else if (typeof userOverride === 'number') {
+        effectiveIndex = userOverride;
+        effectiveSpec = op.specs[effectiveIndex] || matchedSpec;
+        note = `User selected: ${effectiveSpec?.spec}`;
+      }
+    }
+
+    autoTime = (isEnabled && effectiveSpec) ? (Number(effectiveSpec.processTime) || 0) : 0;
+    autoLabourHrs = (isEnabled && effectiveSpec) ? (Number(effectiveSpec.labourHrs) || 0) : 0;
+
+    results.push({
+      id: op.id,
+      name: op.name,
+      category: op.category,
+      cableType: op.cableType,
+      isApplicable,
+      enabled: isEnabled,
+      specIndex: effectiveIndex,
+      spec: effectiveSpec?.spec || 'None',
+      processTime: autoTime,
+      labourHrs: autoLabourHrs,
+      note,
+      specs: op.specs || []
+    });
+  });
+
+  return results;
+}
+
+/**
  * Format minutes into readable "Xh Ym" and decimal hours
  */
 export function formatMinutes(minutes) {
@@ -75,6 +273,7 @@ export function formatMinutes(minutes) {
  * Calculate full cable manufacturing timing
  */
 export function calculateCableTimes({
+  cableType = 'Torquelite',
   length = 15, // meters
   rounds = 50,
   windingSetup = 30, // mins
@@ -90,6 +289,7 @@ export function calculateCableTimes({
   customTapingRate = null,
 
   includeBraiding = true,
+  cableOD = 25, // mm Outer Diameter (used for box prep)
   braidingBaseSetup = 90, // mins
   braidingSetupPerLayer = 10, // mins per layer
   braidingLayers = [
@@ -98,8 +298,8 @@ export function calculateCableTimes({
   tandemBraidingEnabled = true,
   tandemOffset = 5, // minutes stagger between machine 1 and 2
 
-  includeFinishing = false,
-  selectedFinishing = {}, // map of { [itemId]: specIndex }
+  includeFinishing = true,
+  selectedFinishing = {}, // map of { [itemId]: { enabled: boolean, specIndex: number } | number | boolean }
   selectedCustomTables = {}, // map of { [tableId]: { enabled: boolean, rowIndices: number[] } }
   shiftHours = 8,
   referenceData = null
@@ -113,15 +313,18 @@ export function calculateCableTimes({
   const numLength = Math.max(0.1, Number(length) || 1);
   const numRounds = Math.max(1, Number(rounds) || 1);
   const numEnds = Math.max(0, Number(endsCount) || 1);
+  const numCableOD = Math.max(0.1, Number(cableOD) || 25);
 
   // 1. WINDING CALCULATION
+  const isFlex = String(cableType || '').toLowerCase().includes('flex');
+  const windingMultiplier = isFlex ? 2 : 1;
   const windingRange = getWindingRange(numLength, windingData);
   const windingRate = customWindingRate !== null && customWindingRate !== undefined && customWindingRate !== ''
     ? Number(customWindingRate)
     : Number(windingRange.windingTimePerMeter);
   
   const windingSetupTime = Number(windingSetup ?? windingData.fixedSetupTime ?? 30) || 0;
-  const windingProcessTime = windingRate * numLength * numRounds;
+  const windingProcessTime = windingRate * numLength * numRounds * windingMultiplier;
   const windingTotalTime = windingSetupTime + windingProcessTime;
   
   // Historical labour hours ratio
@@ -328,26 +531,41 @@ export function calculateCableTimes({
     braidingLabourHours = (braidingTotalTime / 60) * 0.95;
   }
 
-  // 5. FINISHING CALCULATION
+  // Combined Taping and Braiding
+  const combinedTapingBraidingTime = tapingTotalTime + braidingTotalTime;
+  const combinedTapingBraidingHours = combinedTapingBraidingTime / 60;
+  const combinedTapingBraidingLabour = tapingLabourHours + braidingLabourHours;
+
+  // 5. FINISHING CALCULATION (Auto-matched from previous inputs)
+  const matchedFinishingOps = autoMatchFinishingOperations({
+    cableType,
+    length: numLength,
+    rounds: numRounds,
+    fittingType,
+    fittingSize,
+    cableOD: numCableOD,
+    finishingData,
+    userSelections: selectedFinishing
+  });
+
   let finishingTotalTime = 0;
   let finishingLabourHours = 0;
   const finishingItems = [];
 
   if (includeFinishing) {
-    Object.entries(selectedFinishing).forEach(([itemId, specIdx]) => {
-      if (specIdx !== null && specIdx !== undefined && specIdx !== -1 && specIdx !== '') {
-        const op = finishingData.find(f => f.id === itemId);
-        if (op && op.specs && op.specs[specIdx]) {
-          const spec = op.specs[specIdx];
-          finishingTotalTime += Number(spec.processTime) || 0;
-          finishingLabourHours += Number(spec.labourHrs) || 0;
-          finishingItems.push({
-            name: op.name,
-            spec: spec.spec,
-            time: Number(spec.processTime) || 0,
-            labourHrs: Number(spec.labourHrs) || 0
-          });
-        }
+    matchedFinishingOps.forEach(item => {
+      if (item.enabled) {
+        finishingTotalTime += item.processTime;
+        finishingLabourHours += item.labourHrs;
+        finishingItems.push({
+          id: item.id,
+          name: item.name,
+          category: item.category,
+          spec: item.spec,
+          time: item.processTime,
+          labourHrs: item.labourHrs,
+          note: item.note
+        });
       }
     });
   }
@@ -405,9 +623,11 @@ export function calculateCableTimes({
 
   return {
     inputs: {
+      cableType,
       length: numLength,
       lengthMm: numLength * 1000,
       rounds: numRounds,
+      cableOD: numCableOD,
       fittingType,
       fittingSize,
       endsCount: numEnds,
@@ -416,10 +636,14 @@ export function calculateCableTimes({
       includeFinishing
     },
     winding: {
+      cableType,
+      multiplier: windingMultiplier,
       setupTime: windingSetupTime,
       ratePerMeterPerRound: windingRate,
       processTime: windingProcessTime,
       totalTime: windingTotalTime,
+      totalHours: windingTotalTime / 60,
+      formattedTime: `${windingTotalTime.toFixed(1)} min (${(windingTotalTime / 60).toFixed(2)} hrs)`,
       labourHours: windingLabourHours,
       range: windingRange
     },
@@ -428,6 +652,8 @@ export function calculateCableTimes({
       fittingSize,
       endsCount: numEnds,
       leadTime: mouldingLeadTime,
+      totalHours: mouldingLeadTime / 60,
+      formattedTime: `${mouldingLeadTime.toFixed(1)} min (${(mouldingLeadTime / 60).toFixed(2)} hrs)`,
       labourHours: mouldingLabourHours,
       detail: mouldingDetail
     },
@@ -437,11 +663,14 @@ export function calculateCableTimes({
       ratePerMeter: tapingRate,
       processTime: tapingProcessTime,
       totalTime: tapingTotalTime,
+      totalHours: tapingTotalTime / 60,
+      formattedTime: `${tapingTotalTime.toFixed(1)} min (${(tapingTotalTime / 60).toFixed(2)} hrs)`,
       labourHours: tapingLabourHours,
       range: tapingRange
     },
     braiding: {
       enabled: includeBraiding,
+      cableOD: numCableOD,
       tandemEnabled: isTandemEnabled,
       tandemOffset: numTandemOffset,
       baseSetup: Number(braidingBaseSetup ?? braidingData.baseSetupTime ?? 90) || 0,
@@ -451,21 +680,41 @@ export function calculateCableTimes({
       sequentialProcessTime: braidingSequentialProcessTime,
       timeSaved: braidingTimeSaved,
       totalTime: braidingTotalTime,
+      totalHours: braidingTotalTime / 60,
+      formattedTime: `${braidingTotalTime.toFixed(1)} min (${(braidingTotalTime / 60).toFixed(2)} hrs)`,
       labourHours: braidingLabourHours,
       layers: calculatedLayers,
       groups: braidingGroups,
       pairCount: braidingGroups.filter(g => g.type === 'tandem_pair').length,
       singleCount: braidingGroups.filter(g => g.type === 'single').length
     },
+    tapingAndBraiding: {
+      enabled: includeTaping || includeBraiding,
+      totalTime: combinedTapingBraidingTime,
+      totalHours: combinedTapingBraidingHours,
+      formattedTime: `${combinedTapingBraidingTime.toFixed(1)} min (${combinedTapingBraidingHours.toFixed(2)} hrs)`,
+      tapingTime: tapingTotalTime,
+      braidingTime: braidingTotalTime,
+      tapingHours: tapingTotalTime / 60,
+      braidingHours: braidingTotalTime / 60,
+      labourHours: combinedTapingBraidingLabour,
+      tapingSetup: tapingSetupTime,
+      braidingSetup: braidingSetupTime
+    },
     finishing: {
       enabled: includeFinishing,
       totalTime: finishingTotalTime,
+      totalHours: finishingTotalTime / 60,
+      formattedTime: `${finishingTotalTime.toFixed(1)} min (${(finishingTotalTime / 60).toFixed(2)} hrs)`,
       labourHours: finishingLabourHours,
-      items: finishingItems
+      items: finishingItems,
+      allOperations: matchedFinishingOps
     },
     customTables: {
       enabled: customTablesTotalTime > 0,
       totalTime: customTablesTotalTime,
+      totalHours: customTablesTotalTime / 60,
+      formattedTime: `${customTablesTotalTime.toFixed(1)} min (${(customTablesTotalTime / 60).toFixed(2)} hrs)`,
       setupTime: customTablesSetupTime,
       processTime: customTablesProcessTime,
       labourHours: customTablesLabourHours,
@@ -474,11 +723,16 @@ export function calculateCableTimes({
     totals: {
       grandTotalMinutes,
       grandTotalHours: totalHours,
-      formattedTime: formatMinutes(grandTotalMinutes),
+      formattedHours: `${totalHours.toFixed(2)} hrs`,
+      formattedTotal: `${totalHours.toFixed(2)} hrs (${Math.floor(grandTotalMinutes / 60)}h ${Math.round(grandTotalMinutes % 60)}m)`,
+      formattedTime: `${totalHours.toFixed(2)} hrs`,
+      totalMinutesStr: `${grandTotalMinutes.toFixed(1)} min`,
       totalSetupTime,
-      formattedSetupTime: formatMinutes(totalSetupTime),
+      setupHours: totalSetupTime / 60,
+      formattedSetupTime: `${totalSetupTime.toFixed(1)} min (${(totalSetupTime / 60).toFixed(2)} hrs)`,
       totalProcessTime,
-      formattedProcessTime: formatMinutes(totalProcessTime),
+      processHours: totalProcessTime / 60,
+      formattedProcessTime: `${totalProcessTime.toFixed(1)} min (${(totalProcessTime / 60).toFixed(2)} hrs)`,
       totalLabourHours,
       productionShifts: Number(productionShifts.toFixed(2)),
       setupPercent: grandTotalMinutes > 0 ? Math.round((totalSetupTime / grandTotalMinutes) * 100) : 0,

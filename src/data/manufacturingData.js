@@ -178,81 +178,109 @@ export const BRAIDING_DATA = {
   ]
 };
 
+export const CABLE_TYPES = ['Fibrelite', 'Torquelite', 'Torquelite Flex'];
+
 export const FINISHING_DATA = [
   { 
     id: 'cutback_shrink', 
     cableType: 'Torquelite', 
     name: 'Cut back & shrink tube installment', 
-    category: 'Cut Back', 
+    category: 'Cut Back',
+    matchField: 'fittingSize',
     specs: [
-      { spec: 'Size 2', processTime: 60, labours: 2, labourHrs: 2 },
-      { spec: 'Size 3', processTime: 90, labours: 2, labourHrs: 3 },
-      { spec: 'Size 4', processTime: 120, labours: 2, labourHrs: 4 },
-      { spec: 'Size 5', processTime: 150, labours: 2, labourHrs: 5 },
+      { spec: 'Size 2', processTime: 60, labours: 2, labourHrs: 2, minBound: 2, maxBound: 2 },
+      { spec: 'Size 3', processTime: 90, labours: 2, labourHrs: 3, minBound: 3, maxBound: 3 },
+      { spec: 'Size 4', processTime: 120, labours: 2, labourHrs: 4, minBound: 4, maxBound: 4 },
+      { spec: 'Size 5', processTime: 150, labours: 2, labourHrs: 5, minBound: 5, maxBound: 5 },
     ]
   },
   { 
     id: 'cutback_flex', 
     cableType: 'Torquelite Flex', 
     name: 'Cut back', 
-    category: 'Cut Back', 
+    category: 'Cut Back',
+    matchField: 'fixed',
     specs: [
-      { spec: 'Standard', processTime: 60, labours: 2, labourHrs: 2 }
+      { spec: 'Standard', processTime: 60, labours: 2, labourHrs: 2, minBound: 0, maxBound: 999 }
     ]
   },
   { 
     id: 'testing', 
     cableType: 'All', 
     name: 'Testing', 
-    category: 'Quality', 
+    category: 'Quality',
+    matchField: 'fixed',
     specs: [
-      { spec: 'Standard Testing', processTime: 60, labours: 2, labourHrs: 2 }
+      { spec: 'Standard Testing', processTime: 45, labours: 2, labourHrs: 2, minBound: 0, maxBound: 999 }
     ]
   },
   { 
     id: 'breaking', 
     cableType: 'All', 
     name: 'Cable breaking', 
-    category: 'Breaking', 
+    category: 'Breaking',
+    matchField: 'rounds',
     specs: [
-      { spec: 'Rounds 1-50', processTime: 20, labours: 4, labourHrs: 1.33 },
-      { spec: 'Rounds 501-1000', processTime: 40, labours: 25, labourHrs: 16.67 },
+      { spec: 'Rounds 1-50', processTime: 20, labours: 4, labourHrs: 1.33, minBound: 1, maxBound: 50 },
+      { spec: 'Rounds 51-100', processTime: 25, labours: 6, labourHrs: 2.5, minBound: 51, maxBound: 100 },
+      { spec: 'Rounds 101-500', processTime: 30, labours: 10, labourHrs: 5.0, minBound: 101, maxBound: 500 },
+      { spec: 'Rounds 501-1000', processTime: 40, labours: 25, labourHrs: 16.67, minBound: 501, maxBound: 1000 },
     ]
   },
   { 
     id: 'coiling', 
     cableType: 'All', 
     name: 'Coiling', 
-    category: 'Handling', 
+    category: 'Handling',
+    matchField: 'length',
     specs: [
-      { spec: 'Length 1000-20000', processTime: 30, labours: 2, labourHrs: 1.0 },
-      { spec: 'Length 20000-50000', processTime: 40, labours: 4, labourHrs: 2.67 },
+      { spec: 'Length 1-10', processTime: 30, labours: 2, labourHrs: 1.0, minBound: 0, maxBound: 10 },
+      { spec: 'Length 10.001-20', processTime: 40, labours: 4, labourHrs: 2.67, minBound: 10.001, maxBound: 20 },
+      { spec: 'Length 20.001-30', processTime: 50, labours: 4, labourHrs: 3.33, minBound: 20.001, maxBound: 30 },
+      { spec: 'Length 30.001-40', processTime: 60, labours: 4, labourHrs: 4.0, minBound: 30.001, maxBound: 40 },
     ]
   },
   { 
     id: 'polishing', 
     cableType: 'All', 
     name: 'Fitting Polishing & cleaning', 
-    category: 'Finishing', 
+    category: 'Finishing',
+    matchField: 'fittingSize',
     specs: [
-      { spec: 'Size 2-3', processTime: 30, labours: 1, labourHrs: 0.5 },
-      { spec: 'Size 4-6', processTime: 60, labours: 1, labourHrs: 1.0 },
+      { spec: 'Size 1', processTime: 0, labours: 0, labourHrs: 0, minBound: 0, maxBound: 1 },
+      { spec: 'Size 2-3', processTime: 30, labours: 1, labourHrs: 0.5, minBound: 2, maxBound: 3 },
+      { spec: 'Size 4-6', processTime: 60, labours: 1, labourHrs: 1.0, minBound: 4, maxBound: 6 },
     ]
   },
   { 
-    id: 'box_prep', 
-    cableType: 'All', 
-    name: 'Box Preparation', 
-    category: 'Packaging', 
+    id: 'box_prep_flex_fibre', 
+    cableType: 'Fibrelite/Torquelite Flex', 
+    name: 'Box Preparation (Fibrelite & Torquelite Flex)', 
+    category: 'Packaging',
+    matchField: 'cableOD',
+    woodenThreshold: 56,
     specs: [
-      { spec: 'Size 1-2', processTime: 30, labours: 2, labourHrs: 1.0 },
-      { spec: 'Size 3', processTime: 45, labours: 2, labourHrs: 1.5 },
-      { spec: 'Size 4', processTime: 60, labours: 2, labourHrs: 2.0 },
+      { spec: '0 < OD <= 32 mm', processTime: 30, labours: 2, labourHrs: 1.0, minBound: 0, maxBound: 32 },
+      { spec: '32 < OD <= 52 mm', processTime: 45, labours: 2, labourHrs: 1.5, minBound: 32.001, maxBound: 52 },
+      { spec: '52 < OD <= 56 mm', processTime: 60, labours: 2, labourHrs: 2.0, minBound: 52.001, maxBound: 56.001 },
+    ]
+  },
+  { 
+    id: 'box_prep_torquelite', 
+    cableType: 'Torquelite', 
+    name: 'Box Preparation (Torquelite)', 
+    category: 'Packaging',
+    matchField: 'cableOD',
+    woodenThreshold: 28,
+    specs: [
+      { spec: '0 < OD <= 16 mm', processTime: 30, labours: 2, labourHrs: 1.0, minBound: 0, maxBound: 16 },
+      { spec: '16 < OD <= 26 mm', processTime: 45, labours: 2, labourHrs: 1.5, minBound: 16.001, maxBound: 26 },
+      { spec: '26 < OD <= 28 mm', processTime: 60, labours: 2, labourHrs: 2.0, minBound: 26.001, maxBound: 28 },
     ]
   }
 ];
 
-export const REFERENCE_DATA_VERSION = '2026.11.11_v1';
+export const REFERENCE_DATA_VERSION = '2026.11.16_v1';
 
 export const INITIAL_REFERENCE_DATA = {
   _version: REFERENCE_DATA_VERSION,

@@ -256,6 +256,23 @@ export default function DataReferenceModal({
     setTimeout(() => setSaveSuccess(false), 2500);
   };
 
+  const handleSaveAndApply = () => {
+    onSaveReferenceData(localData);
+    setSaveSuccess(true);
+    setIsEditing(false);
+    setTimeout(() => {
+      onClose();
+    }, 350);
+  };
+
+  const handleClose = () => {
+    if (isEditing) {
+      onSaveReferenceData(localData);
+      setIsEditing(false);
+    }
+    onClose();
+  };
+
   const handleResetToDefaults = () => {
     if (window.confirm('Reset all reference tables back to original Excel study values? (Custom tables will be cleared)')) {
       const defaults = JSON.parse(JSON.stringify(INITIAL_REFERENCE_DATA));
@@ -326,15 +343,21 @@ export default function DataReferenceModal({
               <div className="flex items-center gap-1.5">
                 <button
                   type="button"
-                  onClick={handleSave}
+                  onClick={handleSaveAndApply}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors shadow-2xs"
+                  title="Save changes and apply immediately to calculator"
                 >
                   <Save className="w-3.5 h-3.5" />
-                  <span>Save Changes</span>
+                  <span>Save & Apply</span>
                 </button>
                 <button
                   type="button"
-                  onClick={() => setIsEditing(false)}
+                  onClick={() => {
+                    if (referenceData) {
+                      setLocalData(JSON.parse(JSON.stringify(referenceData)));
+                    }
+                    setIsEditing(false);
+                  }}
                   className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-white hover:bg-slate-100 text-slate-600 border border-slate-300"
                 >
                   Cancel
@@ -343,8 +366,9 @@ export default function DataReferenceModal({
             )}
 
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="p-1.5 text-slate-400 hover:text-slate-800 rounded-lg hover:bg-slate-200 transition-colors"
+              title="Close modal (auto-saves any edits)"
             >
               <X className="w-5 h-5" />
             </button>
@@ -1184,20 +1208,23 @@ export default function DataReferenceModal({
         {/* Modal Footer */}
         <div className="px-6 py-3 border-t border-slate-200 bg-slate-50 flex items-center justify-between text-xs">
           <span className="text-slate-500">
-            {isEditing ? 'Editing active. Click "Save Changes" to apply.' : 'Any customized rates or new tables are saved automatically to your local browser storage.'}
+            {isEditing 
+              ? 'Editing active. Modified rates immediately update all manufacturing calculations.' 
+              : 'Any customized rates or new tables are saved automatically to your local browser storage.'}
           </span>
           <div className="flex items-center gap-2">
             {isEditing && (
               <button
                 type="button"
-                onClick={handleSave}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold transition-colors shadow-2xs"
+                onClick={handleSaveAndApply}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold transition-colors shadow-2xs flex items-center gap-1.5"
               >
-                Save Changes
+                <Save className="w-3.5 h-3.5" />
+                <span>Save & Apply to Calculator</span>
               </button>
             )}
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-semibold transition-colors"
             >
               Close

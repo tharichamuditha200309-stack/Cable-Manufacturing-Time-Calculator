@@ -29,12 +29,14 @@ export default function App() {
     }
   });
 
-  // Core Inputs
+  // Core Specifications & Dimensions
+  const [cableType, setCableType] = useState('Torquelite');
   const [length, setLength] = useState(15);
   const [rounds, setRounds] = useState(50);
+  const [cableOD, setCableOD] = useState(25); // mm Outer Diameter (used for box prep)
 
   // Winding Stage
-  const [windingSetup, setWindingSetup] = useState(30);
+  const [windingSetup, setWindingSetup] = useState(() => referenceData?.winding?.fixedSetupTime ?? 30);
   const [customWindingRate, setCustomWindingRate] = useState(null);
 
   // Moulding Stage
@@ -45,21 +47,21 @@ export default function App() {
 
   // Taping Stage
   const [includeTaping, setIncludeTaping] = useState(true);
-  const [tapingSetup, setTapingSetup] = useState(20);
+  const [tapingSetup, setTapingSetup] = useState(() => referenceData?.taping?.fixedSetupTime ?? 20);
   const [customTapingRate, setCustomTapingRate] = useState(null);
 
   // Braiding Stage
   const [includeBraiding, setIncludeBraiding] = useState(true);
-  const [braidingBaseSetup, setBraidingBaseSetup] = useState(90);
-  const [braidingSetupPerLayer, setBraidingSetupPerLayer] = useState(10);
+  const [braidingBaseSetup, setBraidingBaseSetup] = useState(() => referenceData?.braiding?.baseSetupTime ?? 90);
+  const [braidingSetupPerLayer, setBraidingSetupPerLayer] = useState(() => referenceData?.braiding?.setupTimePerLayer ?? 10);
   const [braidingLayers, setBraidingLayers] = useState([
     { id: '1', bobbins: 32, type: 1, customRate: null }
   ]);
   const [tandemBraidingEnabled, setTandemBraidingEnabled] = useState(true);
   const [tandemOffset, setTandemOffset] = useState(5);
 
-  // Finishing Stage (Optional)
-  const [includeFinishing, setIncludeFinishing] = useState(false);
+  // Finishing Stage (Active with auto-matching)
+  const [includeFinishing, setIncludeFinishing] = useState(true);
   const [selectedFinishing, setSelectedFinishing] = useState({});
 
   // Custom Process Tables (Optional dynamically added tables)
@@ -131,8 +133,10 @@ export default function App() {
   // Perform Calculation with dynamic referenceData
   const results = useMemo(() => {
     return calculateCableTimes({
+      cableType,
       length,
       rounds,
+      cableOD,
       windingSetup,
       customWindingRate,
       fittingType,
@@ -155,8 +159,10 @@ export default function App() {
       referenceData
     });
   }, [
+    cableType,
     length,
     rounds,
+    cableOD,
     windingSetup,
     customWindingRate,
     fittingType,
@@ -334,25 +340,28 @@ export default function App() {
   // Reset to initial baseline
   const handleReset = () => {
     setCableName('Standard Industrial Cable #01');
+    setCableType('Torquelite');
     setLength(15);
     setRounds(50);
-    setWindingSetup(30);
+    setCableOD(25);
+    setWindingSetup(referenceData?.winding?.fixedSetupTime ?? 30);
     setCustomWindingRate(null);
     setFittingType('Thimble');
     setFittingSize('2');
     setEndsCount(2);
     setCustomMouldingLeadTime(null);
     setIncludeTaping(true);
-    setTapingSetup(20);
+    setTapingSetup(referenceData?.taping?.fixedSetupTime ?? 20);
     setCustomTapingRate(null);
     setIncludeBraiding(true);
-    setBraidingBaseSetup(90);
-    setBraidingSetupPerLayer(10);
+    setBraidingBaseSetup(referenceData?.braiding?.baseSetupTime ?? 90);
+    setBraidingSetupPerLayer(referenceData?.braiding?.setupTimePerLayer ?? 10);
     setTandemBraidingEnabled(true);
     setTandemOffset(5);
     setBraidingLayers([{ id: '1', bobbins: 32, type: 1, customRate: null }]);
-    setIncludeFinishing(false);
+    setIncludeFinishing(true);
     setSelectedFinishing({});
+    setSelectedCustomTables({});
   };
 
   // Export Data to CSV
@@ -417,6 +426,8 @@ export default function App() {
           {/* Left Column: Interactive Inputs (Span 7) */}
           <div className="lg:col-span-7 space-y-6">
             <InputPanel
+              cableType={cableType}
+              setCableType={setCableType}
               length={length}
               setLength={setLength}
               rounds={rounds}
@@ -448,6 +459,8 @@ export default function App() {
 
               includeBraiding={includeBraiding}
               setIncludeBraiding={setIncludeBraiding}
+              cableOD={cableOD}
+              setCableOD={setCableOD}
               braidingBaseSetup={braidingBaseSetup}
               setBraidingBaseSetup={setBraidingBaseSetup}
               braidingSetupPerLayer={braidingSetupPerLayer}
@@ -466,6 +479,7 @@ export default function App() {
               setSelectedFinishing={setSelectedFinishing}
               selectedCustomTables={selectedCustomTables}
               setSelectedCustomTables={setSelectedCustomTables}
+              finishingResults={results.finishing}
               referenceData={referenceData}
             />
           </div>

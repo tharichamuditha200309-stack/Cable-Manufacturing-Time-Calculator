@@ -29,7 +29,7 @@ export default function OverallSummaryPanel({
 }) {
   const [copied, setCopied] = useState(false);
   const [savedToHistory, setSavedToHistory] = useState(false);
-  const { totals, winding, moulding, taping, braiding, finishing, inputs } = results;
+  const { totals, winding, moulding, taping, braiding, tapingAndBraiding, finishing, customTables, inputs } = results;
 
   // Process item values for summation
   const processes = [
@@ -37,65 +37,73 @@ export default function OverallSummaryPanel({
       id: 'winding',
       name: 'Winding Time',
       time: winding.totalTime,
+      hours: winding.totalHours ?? (winding.totalTime / 60),
       active: true,
       color: 'text-blue-600',
       badgeColor: 'bg-blue-50 text-blue-700 border-blue-200',
-      formula: `30m setup + (${winding.ratePerMeterPerRound} × ${inputs.length}m × ${inputs.rounds}r)`
+      formula: `${winding.setupTime}m setup + (${winding.ratePerMeterPerRound} × ${inputs.length}m × ${inputs.rounds}r${winding.multiplier > 1 ? ` × ${winding.multiplier}` : ''})`
     },
     {
       id: 'moulding',
       name: 'Moulding Time',
       time: moulding.leadTime,
+      hours: moulding.totalHours ?? (moulding.leadTime / 60),
       active: moulding.fittingType !== 'None',
       color: 'text-violet-600',
       badgeColor: 'bg-violet-50 text-violet-700 border-violet-200',
       formula: moulding.fittingType === 'None' ? 'No moulding' : `${moulding.fittingType} ${moulding.fittingSize} (${moulding.endsCount} end${moulding.endsCount > 1 ? 's' : ''})`
     },
     {
-      id: 'taping',
-      name: 'Taping Time',
-      time: taping.totalTime,
-      active: taping.enabled,
-      color: 'text-cyan-600',
-      badgeColor: 'bg-cyan-50 text-cyan-700 border-cyan-200',
-      formula: taping.enabled ? `20m setup + (${taping.ratePerMeter} × ${inputs.length}m)` : 'Bypassed'
+      id: 'taping_and_braiding',
+      name: 'Taping and Braiding Total',
+      subtopic: 'Taping and Braiding',
+      time: (tapingAndBraiding?.totalTime) ?? (taping.totalTime + braiding.totalTime),
+      hours: (tapingAndBraiding?.totalHours) ?? ((taping.totalTime + braiding.totalTime) / 60),
+      active: taping.enabled || braiding.enabled,
+      color: 'text-emerald-700',
+      badgeColor: 'bg-emerald-50 text-emerald-800 border-emerald-300',
+      formula: `Taping: ${taping.enabled ? `${taping.totalTime.toFixed(1)}m (${(taping.totalTime / 60).toFixed(2)}h)` : '0m'} + Braiding: ${braiding.enabled ? `${braiding.totalTime.toFixed(1)}m (${(braiding.totalTime / 60).toFixed(2)}h)` : '0m'}`
     },
-    {
-      id: 'braiding',
-      name: 'Braiding Time',
-      time: braiding.totalTime,
-      active: braiding.enabled,
-      color: 'text-emerald-600',
-      badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      formula: braiding.enabled 
-        ? `${braiding.setupTime}m setup (${braiding.layers.length} layers${braiding.pairCount ? `, ${braiding.pairCount} tandem` : ''}) + run` 
-        : 'Bypassed'
-    },
-    ...(finishing.enabled && finishing.totalTime > 0 ? [{
+    ...(finishing?.enabled && finishing.totalTime > 0 ? [{
       id: 'finishing',
-      name: 'Finishing & Testing',
+      name: 'Finishing Operations',
       time: finishing.totalTime,
+      hours: finishing.totalHours ?? (finishing.totalTime / 60),
       active: true,
       color: 'text-amber-600',
       badgeColor: 'bg-amber-50 text-amber-700 border-amber-200',
-      formula: `${finishing.items.length} operation(s)`
+      formula: `${finishing.items.length} operation(s) auto-calculated`
+    }] : []),
+    ...(customTables?.enabled && customTables.totalTime > 0 ? [{
+      id: 'customTables',
+      name: 'Custom Process Tables',
+      time: customTables.totalTime,
+      hours: customTables.totalHours ?? (customTables.totalTime / 60),
+      active: true,
+      color: 'text-indigo-600',
+      badgeColor: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+      formula: `${customTables.items.length} operation(s)`
     }] : [])
   ];
 
   const handleCopySummary = () => {
+    const tapingBraidingTime = (tapingAndBraiding?.totalTime) ?? (taping.totalTime + braiding.totalTime);
+    const tapingBraidingHrs = (tapingAndBraiding?.totalHours) ?? (tapingBraidingTime / 60);
+
     const text = `Cable Manufacturing Overall Time Summary:
-Item: ${cableName}
-Length: ${inputs.length}m | Rounds: ${inputs.rounds} | Fitting: ${inputs.fittingType} ${inputs.fittingSize}
+Item: ${cableName} (${inputs.cableType || 'Standard'})
+Length: ${inputs.length}m | Rounds: ${inputs.rounds} | OD: ${inputs.cableOD || 25}mm | Fitting: ${inputs.fittingType} ${inputs.fittingSize}
 ----------------------------------------
-Winding Time:   ${winding.totalTime.toFixed(1)} mins
-Moulding Time:  ${moulding.leadTime.toFixed(1)} mins
-Taping Time:    ${taping.enabled ? taping.totalTime.toFixed(1) : '0'} mins
-Braiding Time:  ${braiding.enabled ? braiding.totalTime.toFixed(1) : '0'} mins
-${finishing.enabled ? `Finishing Time: ${finishing.totalTime.toFixed(1)} mins\n` : ''}----------------------------------------
-OVERALL TIME:   ${totals.grandTotalMinutes.toFixed(1)} mins (${totals.formattedTime} / ${totals.grandTotalHours.toFixed(2)} hrs)
-Setup Time:     ${totals.totalSetupTime} mins (${totals.formattedSetupTime})
-Run Time:       ${totals.totalProcessTime.toFixed(1)} mins (${totals.formattedProcessTime})
-Labour Hours:   ${totals.totalLabourHours.toFixed(1)} hrs (~${totals.productionShifts} shifts)`;
+Winding Time:          ${winding.totalTime.toFixed(1)} mins (${(winding.totalTime / 60).toFixed(2)} hrs)
+Moulding Time:         ${moulding.leadTime.toFixed(1)} mins (${(moulding.leadTime / 60).toFixed(2)} hrs)
+Taping and Braiding:   ${tapingBraidingTime.toFixed(1)} mins (${tapingBraidingHrs.toFixed(2)} hrs)
+  - Taping Portion:    ${taping.enabled ? taping.totalTime.toFixed(1) : '0'} mins (${(taping.totalTime / 60).toFixed(2)} hrs)
+  - Braiding Portion:  ${braiding.enabled ? braiding.totalTime.toFixed(1) : '0'} mins (${(braiding.totalTime / 60).toFixed(2)} hrs)
+${finishing?.enabled ? `Finishing Time:        ${finishing.totalTime.toFixed(1)} mins (${(finishing.totalTime / 60).toFixed(2)} hrs)\n` : ''}----------------------------------------
+OVERALL TOTAL TIME:    ${totals.grandTotalMinutes.toFixed(1)} mins (${totals.grandTotalHours.toFixed(2)} hrs)
+Setup Time:            ${totals.totalSetupTime} mins (${(totals.totalSetupTime / 60).toFixed(2)} hrs)
+Run Time:              ${totals.totalProcessTime.toFixed(1)} mins (${(totals.totalProcessTime / 60).toFixed(2)} hrs)
+Labour Hours:          ${totals.totalLabourHours.toFixed(1)} hrs (~${totals.productionShifts} shifts)`;
 
     navigator.clipboard.writeText(text);
     setCopied(true);
@@ -145,18 +153,18 @@ Labour Hours:   ${totals.totalLabourHours.toFixed(1)} hrs (~${totals.productionS
           Total Calculated Manufacturing Time
         </div>
         
-        {/* HUGE Number Display (Poppins SemiBold / Inter Medium) */}
+        {/* HUGE Number Display (Poppins SemiBold / Inter Medium) - Primary Decimal Hours */}
         <div className="text-5xl sm:text-6xl font-semibold text-slate-900 tracking-tight font-heading py-1">
-          {totals.formattedTime}
+          {totals.grandTotalHours.toFixed(2)} hrs
         </div>
 
         {/* Big Total Minutes badge */}
         <div className="mt-2 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-600 text-white shadow-xs">
           <span className="text-base font-semibold font-sans tracking-tight">
-            {totals.grandTotalMinutes.toFixed(1)}
+            {totals.grandTotalMinutes.toFixed(1)} Total Minutes
           </span>
-          <span className="text-xs font-medium text-blue-100 uppercase tracking-wide font-sans">
-            Total Minutes
+          <span className="text-xs font-medium text-blue-100 font-sans">
+            ({Math.floor(totals.grandTotalMinutes / 60)}h {Math.round(totals.grandTotalMinutes % 60)}m)
           </span>
         </div>
 
@@ -186,7 +194,7 @@ Labour Hours:   ${totals.totalLabourHours.toFixed(1)} hrs (~${totals.productionS
             Summation of Process Times
           </span>
           <span className="text-[11px] text-slate-700 font-sans font-medium">
-            Winding + Moulding + Taping + Braiding
+            Winding + Moulding + Taping & Braiding + Finishing
           </span>
         </div>
 
@@ -197,7 +205,7 @@ Labour Hours:   ${totals.totalLabourHours.toFixed(1)} hrs (~${totals.productionS
             return (
               <div 
                 key={proc.id} 
-                className={`flex items-center justify-between text-xs py-1.5 px-2.5 rounded-lg ${
+                className={`flex items-center justify-between text-xs py-2 px-2.5 rounded-lg transition-all ${
                   proc.active ? 'bg-white border border-slate-200 shadow-2xs' : 'opacity-40 line-through'
                 }`}
               >
@@ -207,14 +215,17 @@ Labour Hours:   ${totals.totalLabourHours.toFixed(1)} hrs (~${totals.productionS
                   </span>
                   <div>
                     <span className="font-medium text-slate-800 font-sans">{proc.name}</span>
-                    <span className="text-[10px] text-slate-400 block font-sans font-normal">{proc.formula}</span>
+                    <span className="text-[10px] text-slate-500 block font-sans font-normal">{proc.formula}</span>
                   </div>
                 </div>
 
                 <div className="text-right font-sans">
-                  <span className="text-sm font-semibold text-slate-900">
-                    {proc.active ? proc.time.toFixed(1) : '0'} <span className="text-[11px] font-normal text-slate-500">min</span>
-                  </span>
+                  <div className="text-sm font-semibold text-slate-900">
+                    {proc.active ? `${proc.time.toFixed(1)} min` : '0 min'}
+                    <span className="text-xs font-bold text-blue-700 ml-1.5">
+                      ({proc.active ? `${proc.hours.toFixed(2)} hrs` : '0.00 hrs'})
+                    </span>
+                  </div>
                   {proc.active && (
                     <span className="text-[10px] text-slate-400 block font-normal">
                       ({pct}%)
@@ -234,11 +245,14 @@ Labour Hours:   ${totals.totalLabourHours.toFixed(1)} hrs (~${totals.productionS
               </span>
             </div>
             <div className="text-right">
-              <span className="text-lg font-semibold text-blue-800">
+              <span className="text-lg font-bold text-blue-800">
                 {totals.grandTotalMinutes.toFixed(1)} <span className="text-xs font-medium text-slate-600">min</span>
+                <span className="text-base font-extrabold text-blue-900 ml-2">
+                  ({totals.grandTotalHours.toFixed(2)} hrs)
+                </span>
               </span>
               <span className="text-[11px] text-slate-600 font-medium block">
-                = {totals.formattedTime}
+                = {Math.floor(totals.grandTotalMinutes / 60)}h {Math.round(totals.grandTotalMinutes % 60)}m | Work Shifts: {totals.productionShifts} shifts
               </span>
             </div>
           </div>
