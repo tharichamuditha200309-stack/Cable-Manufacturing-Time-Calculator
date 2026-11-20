@@ -33,7 +33,8 @@ export default function App() {
   const [cableType, setCableType] = useState('Torquelite');
   const [length, setLength] = useState(15);
   const [rounds, setRounds] = useState(50);
-  const [cableOD, setCableOD] = useState(25); // mm Outer Diameter (used for box prep)
+  const [cableOD, setCableOD] = useState(25); // mm Outer Diameter (legacy/box prep)
+  const [postTapingDiameter, setPostTapingDiameter] = useState(12.0); // mm Post-Taping Core Diameter
 
   // Winding Stage
   const [windingSetup, setWindingSetup] = useState(() => referenceData?.winding?.fixedSetupTime ?? 30);
@@ -141,12 +142,13 @@ export default function App() {
       customWindingRate,
       fittingType,
       fittingSize,
-      endsCount,
+      endsCount: 2, // Always 2 ends (both terminations)
       customMouldingLeadTime,
       includeTaping,
       tapingSetup,
       customTapingRate,
       includeBraiding,
+      postTapingDiameter,
       braidingBaseSetup,
       braidingSetupPerLayer,
       braidingLayers,
@@ -173,6 +175,7 @@ export default function App() {
     tapingSetup,
     customTapingRate,
     includeBraiding,
+    postTapingDiameter,
     braidingBaseSetup,
     braidingSetupPerLayer,
     braidingLayers,
@@ -201,7 +204,9 @@ export default function App() {
         rounds: Number(rounds),
         fittingType,
         fittingSize,
-        endsCount,
+        endsCount: 2,
+        postTapingDiameter: Number(postTapingDiameter),
+        finalOuterDiameter: results.braiding.finalOuterDiameter,
         includeTaping,
         includeBraiding,
         braidingLayersCount: braidingLayers.length,
@@ -246,8 +251,8 @@ export default function App() {
     setRounds(item.inputs.rounds);
     setFittingType(item.inputs.fittingType);
     setFittingSize(item.inputs.fittingSize);
-    if (item.inputs.endsCount !== undefined) setEndsCount(item.inputs.endsCount);
-    else setEndsCount(2);
+    setEndsCount(2);
+    if (item.inputs.postTapingDiameter !== undefined) setPostTapingDiameter(item.inputs.postTapingDiameter);
     if (item.inputs.tandemBraidingEnabled !== undefined) setTandemBraidingEnabled(item.inputs.tandemBraidingEnabled);
     if (item.inputs.tandemOffset !== undefined) setTandemOffset(item.inputs.tandemOffset);
     if (item.inputs.includeTaping !== undefined) setIncludeTaping(item.inputs.includeTaping);
@@ -267,6 +272,7 @@ export default function App() {
       setFittingType('Thimble');
       setFittingSize('2');
       setEndsCount(2);
+      setPostTapingDiameter(12.0);
       setIncludeTaping(true);
       setIncludeBraiding(true);
       setTandemBraidingEnabled(true);
@@ -285,6 +291,7 @@ export default function App() {
       setFittingType('Thimble');
       setFittingSize('2');
       setEndsCount(2);
+      setPostTapingDiameter(12.0);
       setIncludeTaping(true);
       setIncludeBraiding(true);
       setTandemBraidingEnabled(true);
@@ -298,6 +305,7 @@ export default function App() {
       setFittingType('Spool');
       setFittingSize('OD45 - OD75');
       setEndsCount(2);
+      setPostTapingDiameter(22.0);
       setIncludeTaping(true);
       setIncludeBraiding(true);
       setTandemBraidingEnabled(true);
@@ -315,6 +323,7 @@ export default function App() {
       setFittingType('Thimble');
       setFittingSize('1');
       setEndsCount(2);
+      setPostTapingDiameter(8.0);
       setIncludeTaping(true);
       setIncludeBraiding(true);
       setTandemBraidingEnabled(true);
@@ -328,6 +337,7 @@ export default function App() {
       setFittingType('Spool');
       setFittingSize('OD75 - OD120');
       setEndsCount(2);
+      setPostTapingDiameter(32.0);
       setIncludeTaping(true);
       setIncludeBraiding(true);
       setTandemBraidingEnabled(true);
@@ -344,6 +354,7 @@ export default function App() {
     setLength(15);
     setRounds(50);
     setCableOD(25);
+    setPostTapingDiameter(12.0);
     setWindingSetup(referenceData?.winding?.fixedSetupTime ?? 30);
     setCustomWindingRate(null);
     setFittingType('Thimble');
@@ -372,9 +383,11 @@ export default function App() {
       ['Length (m)', results.inputs.length],
       ['Length (mm)', results.inputs.lengthMm],
       ['Rounds', results.inputs.rounds],
+      ['Post-Taping Diameter (mm)', postTapingDiameter],
+      ['Calculated Outer Diameter (mm)', results.braiding.finalOuterDiameter.toFixed(1)],
       ['Fitting Type', results.inputs.fittingType],
       ['Fitting Size', results.inputs.fittingSize],
-      ['Moulded Ends', results.inputs.endsCount],
+      ['Moulded Ends', 2],
       ['Braiding Layers Count', results.braiding.layers.length],
       ['Winding Time (min)', results.winding.totalTime.toFixed(2)],
       ['Moulding Time (min)', results.moulding.leadTime.toFixed(2)],
@@ -401,7 +414,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#848e94] text-slate-900 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#edf4fb] text-slate-900 flex flex-col font-sans">
       
       {/* Top Application Header */}
       <Header
@@ -443,7 +456,7 @@ export default function App() {
               setFittingType={setFittingType}
               fittingSize={fittingSize}
               setFittingSize={setFittingSize}
-              endsCount={endsCount}
+              endsCount={2}
               setEndsCount={setEndsCount}
               customMouldingLeadTime={customMouldingLeadTime}
               setCustomMouldingLeadTime={setCustomMouldingLeadTime}
@@ -459,8 +472,8 @@ export default function App() {
 
               includeBraiding={includeBraiding}
               setIncludeBraiding={setIncludeBraiding}
-              cableOD={cableOD}
-              setCableOD={setCableOD}
+              postTapingDiameter={postTapingDiameter}
+              setPostTapingDiameter={setPostTapingDiameter}
               braidingBaseSetup={braidingBaseSetup}
               setBraidingBaseSetup={setBraidingBaseSetup}
               braidingSetupPerLayer={braidingSetupPerLayer}
@@ -504,11 +517,11 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="mt-auto border-t border-[#6d777d] bg-[#768087] py-4 text-center text-xs text-slate-100">
+      <footer className="mt-auto border-t border-blue-200/60 bg-white/80 backdrop-blur-xs py-4 text-center text-xs text-slate-600 font-sans">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span className="font-semibold text-white">Cable Manufacturing Overall Time Calculator</span>
-          <span className="font-mono text-slate-200">
-            Overall Time = Winding (30m + Speed×L×R) + Moulding + Taping (20m + Speed×L) + Braiding (90m + 10m/layer + Speed×L)
+          <span className="font-semibold text-slate-800">Cable Manufacturing Overall Time Calculator</span>
+          <span className="font-sans text-slate-500">
+            Overall Time = Winding + Moulding (2 Ends) + Taping + Braiding (Tandem 2-Machine & Solo Final Layer)
           </span>
         </div>
       </footer>

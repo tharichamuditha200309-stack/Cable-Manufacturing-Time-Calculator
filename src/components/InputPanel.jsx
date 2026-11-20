@@ -12,13 +12,13 @@ import {
   ChevronUp, 
   CheckCircle2, 
   SlidersHorizontal,
-  Database
+  CircleDot,
+  ArrowRight,
+  Zap
 } from 'lucide-react';
 import { MOULDING_DATA, BRAIDING_DATA, FINISHING_DATA } from '../data/manufacturingData.js';
 
 export default function InputPanel({
-  cableType = 'Torquelite',
-  setCableType,
   length,
   setLength,
   rounds,
@@ -36,8 +36,6 @@ export default function InputPanel({
   setFittingType,
   fittingSize,
   setFittingSize,
-  endsCount,
-  setEndsCount,
   customMouldingLeadTime,
   setCustomMouldingLeadTime,
   mouldingResults,
@@ -54,8 +52,8 @@ export default function InputPanel({
   // Braiding
   includeBraiding,
   setIncludeBraiding,
-  cableOD = 25,
-  setCableOD,
+  postTapingDiameter,
+  setPostTapingDiameter,
   braidingBaseSetup,
   setBraidingBaseSetup,
   braidingSetupPerLayer,
@@ -63,19 +61,12 @@ export default function InputPanel({
   braidingLayers,
   setBraidingLayers,
   braidingResults,
-  tandemBraidingEnabled,
-  setTandemBraidingEnabled,
-  tandemOffset,
-  setTandemOffset,
 
   // Finishing
   includeFinishing,
   setIncludeFinishing,
   selectedFinishing,
   setSelectedFinishing,
-  selectedCustomTables,
-  setSelectedCustomTables,
-  finishingResults,
   referenceData
 }) {
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -96,37 +87,12 @@ export default function InputPanel({
   };
 
   const addLayer = () => {
-    if (braidingLayers.length >= 50) return;
+    if (braidingLayers.length >= 12) return;
     const last = braidingLayers[braidingLayers.length - 1] || { bobbins: 32, type: 1 };
     setBraidingLayers([
       ...braidingLayers,
-      { id: String(Date.now() + Math.random()), bobbins: last.bobbins, type: last.type, customRate: null }
+      { id: String(Date.now()), bobbins: last.bobbins, type: last.type, customRate: null }
     ]);
-  };
-
-  const addMultipleLayers = (count) => {
-    const last = braidingLayers[braidingLayers.length - 1] || { bobbins: 32, type: 1 };
-    const newLayers = [];
-    const totalTarget = Math.min(50, braidingLayers.length + count);
-    for (let i = braidingLayers.length; i < totalTarget; i++) {
-      newLayers.push({
-        id: String(Date.now() + i + Math.random()),
-        bobbins: last.bobbins,
-        type: last.type,
-        customRate: null
-      });
-    }
-    setBraidingLayers([...braidingLayers, ...newLayers]);
-  };
-
-  const setFixedLayersPreset = (count) => {
-    const target = Math.min(50, Math.max(1, count));
-    setBraidingLayers(Array.from({ length: target }, (_, i) => ({
-      id: String(Date.now() + i),
-      bobbins: 32,
-      type: 1,
-      customRate: null
-    })));
   };
 
   const removeLayer = (index) => {
@@ -146,55 +112,24 @@ export default function InputPanel({
     setBraidingLayers(updated);
   };
 
-  const handleFinishingToggle = (opId, currentEnabled) => {
+  const handleFinishingSelect = (itemId, specIndex) => {
     setSelectedFinishing(prev => ({
       ...prev,
-      [opId]: {
-        ...(typeof prev[opId] === 'object' ? prev[opId] : {}),
-        enabled: !currentEnabled
-      }
+      [itemId]: specIndex === '' ? null : Number(specIndex)
     }));
-  };
-
-  const handleFinishingSpecChange = (opId, specIdx) => {
-    setSelectedFinishing(prev => ({
-      ...prev,
-      [opId]: {
-        ...(typeof prev[opId] === 'object' ? prev[opId] : {}),
-        enabled: true,
-        specIndex: Number(specIdx)
-      }
-    }));
-  };
-
-  const handleCustomTableRowToggle = (tableId, rowIndex) => {
-    setSelectedCustomTables(prev => {
-      const cur = prev?.[tableId] || { enabled: true, rowIndices: [] };
-      const exists = (cur.rowIndices || []).includes(rowIndex);
-      const updatedIndices = exists 
-        ? cur.rowIndices.filter(i => i !== rowIndex)
-        : [...(cur.rowIndices || []), rowIndex];
-      return {
-        ...prev,
-        [tableId]: {
-          enabled: updatedIndices.length > 0,
-          rowIndices: updatedIndices
-        }
-      };
-    });
   };
 
   return (
-    <div className="bg-[#939da4] border border-[#768087] rounded-2xl p-6 shadow-md space-y-6">
+    <div className="bg-[#f0f6fc] border border-blue-200/80 rounded-2xl p-6 shadow-sm space-y-6">
       
-      {/* Header with Title and Advanced Toggle (Poppins SemiBold for Heading) */}
-      <div className="flex items-center justify-between pb-4 border-b border-[#768087]/80">
+      {/* Header with Title and Advanced Toggle */}
+      <div className="flex items-center justify-between pb-4 border-b border-blue-200/60">
         <div>
           <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2 font-heading">
             <SlidersHorizontal className="w-5 h-5 text-blue-600" />
             Cable Specifications & Stage Parameters
           </h2>
-          <p className="text-xs text-slate-700 mt-0.5 font-sans font-normal">
+          <p className="text-xs text-slate-500 mt-0.5 font-sans font-normal">
             Enter cable specifications to calculate the overall manufacturing time
           </p>
         </div>
@@ -213,54 +148,15 @@ export default function InputPanel({
         </button>
       </div>
 
-      {/* 1. Core Cable Parameters (Length & Rounds) - Lighter Blue Box */}
+      {/* 1. Core Cable Parameters (Length & Rounds) */}
       <div className="bg-[#f8faff] rounded-xl p-4 border border-blue-100 shadow-2xs">
         <div className="flex items-center justify-between mb-3">
           <span className="text-xs font-semibold uppercase tracking-wider text-slate-800 flex items-center gap-2 font-heading">
             <Ruler className="w-4 h-4 text-blue-600" /> 1. Cable Dimensions & Winding Inputs
           </span>
-          <div className="flex items-center gap-2">
-            {cableType === 'Torquelite Flex' && (
-              <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 font-sans font-medium">
-                ⚡ 2× Flex Multiplier
-              </span>
-            )}
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-100/70 text-blue-800 border border-blue-200 font-sans font-medium">
-              Range: {windingResults.range.label}
-            </span>
-          </div>
-        </div>
-
-        {/* Cable Type Selector */}
-        <div className="mb-4 pb-3 border-b border-blue-100">
-          <label className="text-xs font-semibold text-slate-800 block mb-1.5 font-sans">
-            Cable Construction Type
-          </label>
-          <div className="grid grid-cols-3 gap-2">
-            {['Fibrelite', 'Torquelite', 'Torquelite Flex'].map((type) => (
-              <button
-                key={type}
-                type="button"
-                onClick={() => setCableType(type)}
-                className={`py-2 px-3 rounded-lg text-xs font-medium border text-center transition-all ${
-                  cableType === type
-                    ? 'bg-blue-600 text-white border-blue-600 shadow-xs font-semibold'
-                    : 'bg-white text-slate-700 border-slate-300 hover:bg-blue-50'
-                }`}
-              >
-                {type}
-                {type === 'Torquelite Flex' && (
-                  <span className="block text-[10px] font-normal opacity-90">(2× Winding Time)</span>
-                )}
-              </button>
-            ))}
-          </div>
-          {cableType === 'Torquelite Flex' && (
-            <div className="mt-2 text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded px-2.5 py-1 flex items-center gap-1.5 font-medium">
-              <span>⚡</span>
-              <span><strong>Torquelite Flex Selected:</strong> Standard winding timing is multiplied by <strong>2×</strong>.</span>
-            </div>
-          )}
+          <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-100/70 text-blue-800 border border-blue-200 font-sans font-medium">
+            Range: {windingResults.range.label}
+          </span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -289,14 +185,14 @@ export default function InputPanel({
               <span className="absolute right-3 top-2.5 text-xs text-slate-400 pointer-events-none font-sans font-normal">m</span>
             </div>
             {/* Quick length presets */}
-            <div className="flex flex-wrap items-center gap-1 mt-2">
+            <div className="flex items-center gap-1.5 mt-2">
               <span className="text-[10px] font-medium text-slate-400 font-sans">Quick:</span>
               {[5, 10, 15, 20, 25, 35, 45].map((val) => (
                 <button
                   key={val}
                   type="button"
                   onClick={() => setLength(val)}
-                  className={`px-1.5 py-0.5 text-[10px] rounded font-sans transition-colors border shrink-0 ${
+                  className={`px-2 py-0.5 text-[10px] rounded font-sans transition-colors border ${
                     Number(length) === val
                       ? 'bg-blue-600 text-white font-medium border-blue-600'
                       : 'bg-white text-slate-600 hover:text-slate-900 border-slate-200 hover:bg-blue-50 font-normal'
@@ -332,14 +228,14 @@ export default function InputPanel({
               <span className="absolute right-3 top-2.5 text-xs text-slate-400 pointer-events-none font-sans font-normal">rnds</span>
             </div>
             {/* Quick rounds presets */}
-            <div className="flex flex-wrap items-center gap-1 mt-2">
+            <div className="flex items-center gap-1.5 mt-2">
               <span className="text-[10px] font-medium text-slate-400 font-sans">Quick:</span>
               {[25, 50, 75, 100, 150, 200].map((val) => (
                 <button
                   key={val}
                   type="button"
                   onClick={() => setRounds(val)}
-                  className={`px-1.5 py-0.5 text-[10px] rounded font-sans transition-colors border shrink-0 ${
+                  className={`px-2 py-0.5 text-[10px] rounded font-sans transition-colors border ${
                     Number(rounds) === val
                       ? 'bg-blue-600 text-white font-medium border-blue-600'
                       : 'bg-white text-slate-600 hover:text-slate-900 border-slate-200 hover:bg-blue-50 font-normal'
@@ -353,13 +249,13 @@ export default function InputPanel({
 
         </div>
 
-        {/* Winding formula note (Inter Medium for calculations) */}
-        <div className="mt-3 pt-2.5 border-t border-blue-100 text-xs text-slate-600 flex flex-col sm:flex-row sm:items-center sm:justify-between font-sans gap-1">
+        {/* Winding formula note */}
+        <div className="mt-3 pt-2.5 border-t border-blue-100 text-xs text-slate-600 flex items-center justify-between font-sans">
           <span className="font-normal text-slate-500">
-            Winding: {windingResults.setupTime}m setup + ({windingResults.ratePerMeterPerRound} min/m/rnd × {length}m × {rounds}r{windingResults.multiplier > 1 ? ` × ${windingResults.multiplier} [Flex]` : ''})
+            Winding: 30m setup + ({windingResults.ratePerMeterPerRound} min/m/rnd × {length}m × {rounds}r)
           </span>
           <span className="font-medium text-blue-700">
-            = {windingResults.totalTime.toFixed(1)} min ({windingResults.totalHours.toFixed(2)} hrs)
+            = {windingResults.totalTime.toFixed(1)} min
           </span>
         </div>
 
@@ -402,18 +298,18 @@ export default function InputPanel({
         )}
       </div>
 
-      {/* 2. Moulding Stage (End Fittings & Size) - Lighter Blue Box */}
+      {/* 2. Moulding Stage (Always 2 Ends) */}
       <div className="bg-[#f8faff] rounded-xl p-4 border border-blue-100 shadow-2xs">
         <div className="flex items-center justify-between mb-3">
           <span className="text-xs font-semibold uppercase tracking-wider text-slate-800 flex items-center gap-2 font-heading">
-            <Disc className="w-4 h-4 text-violet-600" /> 2. Moulding End Fittings
+            <Disc className="w-4 h-4 text-violet-600" /> 2. Moulding End Fittings (Always 2 Ends)
           </span>
           <span className="text-xs px-2.5 py-0.5 rounded-full bg-violet-50 text-violet-800 border border-violet-200 font-sans font-medium">
-            {fittingType === 'None' ? 'No Moulding' : `${fittingType} • ${fittingSize}`}
+            {fittingType === 'None' ? 'No Moulding' : `${fittingType} • ${fittingSize} (2 Ends)`}
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
           
           {/* Fitting Type */}
           <div>
@@ -450,12 +346,12 @@ export default function InputPanel({
             >
               {fittingType === 'Thimble' && activeMoulding.items.Thimble.map(item => (
                 <option key={item.size} value={item.size}>
-                  {item.label} ({item.leadTimeMin} min / {item.leadTimeHrs} hrs)
+                  {item.label} (1 end: {item.leadTimeMin}m / 2 ends: {(item.leadTimeMin * 2).toFixed(1)}m)
                 </option>
               ))}
               {fittingType === 'Spool' && activeMoulding.items.Spool.map(item => (
                 <option key={item.size} value={item.size}>
-                  {item.label} ({item.leadTimeMin} min / {item.leadTimeHrs} hrs)
+                  {item.label} (1 end: {item.leadTimeMin}m / 2 ends: {(item.leadTimeMin * 2).toFixed(1)}m)
                 </option>
               ))}
               {fittingType === 'None' && (
@@ -464,38 +360,35 @@ export default function InputPanel({
             </select>
           </div>
 
-          {/* Ends Count */}
+          {/* Moulded Terminations fixed badge (Always 2 Ends) */}
           <div>
             <label className="text-xs font-medium text-slate-700 block mb-1.5 font-sans">
               Moulded Terminations
             </label>
-            <select
-              disabled={fittingType === 'None'}
-              value={endsCount}
-              onChange={(e) => setEndsCount(Number(e.target.value))}
-              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 font-sans font-normal focus:ring-2 focus:ring-violet-500 outline-none disabled:opacity-50 shadow-2xs"
-            >
-              <option value={2}>2 Ends (Standard - Both Terminations)</option>
-              <option value={1}>1 End (Single Termination)</option>
-            </select>
+            <div className="bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 font-sans font-medium flex items-center justify-between shadow-2xs">
+              <span className="text-slate-800">2 Ends</span>
+              <span className="text-[11px] px-2 py-0.5 rounded bg-violet-100 text-violet-800 font-normal">
+                Both Terminations (Fixed)
+              </span>
+            </div>
           </div>
 
         </div>
 
         {/* Moulding formula note */}
-        <div className="mt-3 pt-2.5 border-t border-blue-100 text-xs text-slate-600 flex flex-col sm:flex-row sm:items-center sm:justify-between font-sans gap-1">
+        <div className="mt-3 pt-2.5 border-t border-blue-100 text-xs text-slate-600 flex items-center justify-between font-sans">
           <span className="font-normal text-slate-500">
-            {fittingType === 'None' ? 'No moulding time' : `Chart Lead Time: ${mouldingResults.detail ? mouldingResults.detail.leadTimeMin : 0} min × ${endsCount} end(s)`}
+            {fittingType === 'None' ? 'No moulding time' : `Chart Lead Time: ${mouldingResults.detail ? mouldingResults.detail.leadTimeMin : 0} min × 2 ends`}
           </span>
           <span className="font-medium text-violet-700">
-            = {mouldingResults.leadTime.toFixed(1)} min ({mouldingResults.totalHours.toFixed(2)} hrs)
+            = {mouldingResults.leadTime.toFixed(1)} min ({((mouldingResults.leadTime) / 60).toFixed(2)} hrs)
           </span>
         </div>
 
         {/* Advanced Overrides for Moulding */}
         {showAdvanced && fittingType !== 'None' && (
           <div className="mt-3 p-3 bg-white rounded-lg border border-violet-200 text-xs">
-            <label className="text-slate-600 block mb-1 font-medium font-sans">Custom Moulding Lead Time per End (min):</label>
+            <label className="text-slate-600 block mb-1 font-medium font-sans">Custom Moulding Lead Time per Single End (min):</label>
             <div className="flex items-center gap-2 max-w-xs">
               <input
                 type="number"
@@ -515,11 +408,12 @@ export default function InputPanel({
                 </button>
               )}
             </div>
+            <span className="text-[10px] text-slate-400 block mt-1">Multiplied by 2 for both ends automatically</span>
           </div>
         )}
       </div>
 
-      {/* 3. Taping Stage (Setup: 20 min fixed + speed * length) - Lighter Blue Box */}
+      {/* 3. Taping Stage (Setup: 20 min fixed + speed * length) */}
       <div className="bg-[#f8faff] rounded-xl p-4 border border-blue-100 shadow-2xs">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
@@ -531,7 +425,7 @@ export default function InputPanel({
               className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300"
             />
             <label htmlFor="includeTaping" className="text-xs font-semibold uppercase tracking-wider text-slate-800 flex items-center gap-2 cursor-pointer font-heading">
-              <ShieldCheck className="w-4 h-4 text-cyan-600" /> 3. Taping Stage ({tapingResults.setupTime} min Setup)
+              <ShieldCheck className="w-4 h-4 text-cyan-600" /> 3. Taping Stage (20 min Setup)
             </label>
           </div>
           <span className={`text-xs px-2.5 py-0.5 rounded-full font-sans font-medium ${
@@ -562,18 +456,18 @@ export default function InputPanel({
                 </label>
                 <div className="bg-white border border-slate-300 rounded-lg px-3 py-2 flex items-center justify-between text-sm shadow-2xs font-sans">
                   <span className="text-slate-500 text-xs font-normal">Standard across all lengths</span>
-                  <span className="text-cyan-700 font-medium">{tapingResults.setupTime} mins</span>
+                  <span className="text-cyan-700 font-medium">{tapingSetup} mins</span>
                 </div>
               </div>
             </div>
 
             {/* Taping formula note */}
-            <div className="mt-3 pt-2.5 border-t border-blue-100 text-xs text-slate-600 flex flex-col sm:flex-row sm:items-center sm:justify-between font-sans gap-1">
+            <div className="mt-3 pt-2.5 border-t border-blue-100 text-xs text-slate-600 flex items-center justify-between font-sans">
               <span className="font-normal text-slate-500">
-                Taping: {tapingResults.setupTime}m setup + ({tapingResults.ratePerMeter} min/m × {length}m)
+                Taping: {tapingSetup}m setup + ({tapingResults.ratePerMeter} min/m × {length}m)
               </span>
               <span className="font-medium text-cyan-700">
-                = {tapingResults.totalTime.toFixed(1)} min ({tapingResults.totalHours.toFixed(2)} hrs)
+                = {tapingResults.totalTime.toFixed(1)} min
               </span>
             </div>
 
@@ -617,9 +511,9 @@ export default function InputPanel({
         )}
       </div>
 
-      {/* 4. Braiding Stage (Setup: Base setup + setup per layer) - Lighter Blue Box */}
+      {/* 4. Braiding Stage WITH POST-TAPING DIAMETER & OUTER DIAMETER CALCULATION */}
       <div className="bg-[#f8faff] rounded-xl p-4 border border-blue-100 shadow-2xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2">
+        <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
             <input
               type="checkbox"
@@ -629,128 +523,94 @@ export default function InputPanel({
               className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300"
             />
             <label htmlFor="includeBraiding" className="text-xs font-semibold uppercase tracking-wider text-slate-800 flex items-center gap-2 cursor-pointer font-heading">
-              <Layers className="w-4 h-4 text-emerald-600" /> 4. Braiding Layers Architecture (Up to 50 Layers)
+              <Layers className="w-4 h-4 text-emerald-600" /> 4. Braiding Architecture & Cable Diameters
             </label>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            {braidingResults.timeSaved > 0 && (
-              <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 font-sans font-medium">
-                ⚡ {braidingResults.timeSaved.toFixed(0)}m Saved (Tandem)
-              </span>
-            )}
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-sans font-medium">
-              Setup: {braidingResults.setupTime}m ({braidingResults.baseSetup}m + {braidingLayers.length}×{braidingResults.perLayerSetup}m)
-            </span>
-          </div>
+          <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-sans font-medium">
+            Setup: {braidingResults.setupTime}m (90m + {braidingLayers.length}×10m)
+          </span>
         </div>
 
         {includeBraiding && (
-          <div className="space-y-3">
-            {/* Cable Outer Diameter (OD) Input Control */}
-            <div className="bg-white p-3 rounded-lg border border-slate-200 text-xs shadow-2xs font-sans flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="space-y-4">
+            
+            {/* DIAMETER CELLS: Post-Taping Diameter Input + Calculated Outer Diameter Cell */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white p-3.5 rounded-xl border border-blue-200/80 shadow-2xs">
+              
+              {/* Input: Post-Taping Diameter */}
               <div>
-                <label className="font-semibold text-slate-800 flex items-center gap-1.5">
-                  <Disc className="w-3.5 h-3.5 text-emerald-600" />
-                  Cable Outer Diameter (OD in mm)
+                <label className="text-xs font-medium text-slate-700 block mb-1 font-sans flex items-center justify-between">
+                  <span className="flex items-center gap-1.5 font-semibold text-slate-800">
+                    <CircleDot className="w-4 h-4 text-blue-600" />
+                    Post-Taping Diameter (Input)
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-normal">Initial Core Dia</span>
                 </label>
-                <span className="text-[11px] text-slate-500 font-normal block">
-                  Used for Box Preparation in Finishing ({cableType === 'Torquelite' ? '>28mm = Wooden box (0m)' : '>56mm = Wooden box (0m)'})
-                </span>
-              </div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <div className="relative w-28">
+                <div className="relative">
                   <input
                     type="number"
-                    min="1"
-                    max="200"
+                    min="0.5"
+                    max="100"
                     step="0.5"
-                    value={cableOD}
-                    onChange={(e) => setCableOD(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-300 rounded px-2.5 py-1 text-slate-900 font-bold text-xs focus:ring-1 focus:ring-emerald-500 outline-none"
+                    value={postTapingDiameter}
+                    onChange={(e) => setPostTapingDiameter(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 font-sans font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                    placeholder="e.g. 12.0"
                   />
-                  <span className="absolute right-2.5 top-1 text-slate-400 font-normal">mm</span>
+                  <span className="absolute right-3 top-2.5 text-xs text-slate-400 font-normal pointer-events-none">mm</span>
                 </div>
-                <div className="flex items-center gap-1 flex-wrap">
-                  {[15, 25, 27, 30, 50, 58].map((od) => (
-                    <button
-                      key={od}
-                      type="button"
-                      onClick={() => setCableOD(od)}
-                      className={`px-1.5 py-0.5 text-[10px] rounded border ${
-                        Number(cableOD) === od ? 'bg-emerald-600 text-white font-medium border-emerald-600' : 'bg-white text-slate-600 border-slate-200 hover:bg-emerald-50'
-                      }`}
-                    >
-                      {od}mm
-                    </button>
-                  ))}
+                <span className="text-[10px] text-slate-500 block mt-1">
+                  Speed range for each layer will be chosen according to cable diameter
+                </span>
+              </div>
+
+              {/* Output Cell: Calculated Outer Diameter */}
+              <div className="bg-gradient-to-br from-emerald-50/70 to-blue-50/60 p-3 rounded-lg border border-emerald-200 flex flex-col justify-between">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-emerald-900 uppercase tracking-wider font-heading flex items-center gap-1">
+                    <CircleDot className="w-3.5 h-3.5 text-emerald-600" />
+                    Calculated Outer Diameter
+                  </span>
+                  <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-medium">
+                    +{braidingLayers.length} mm added
+                  </span>
+                </div>
+                <div className="my-1 flex items-baseline gap-2">
+                  <span className="text-2xl font-black text-slate-900 font-heading">
+                    {braidingResults.finalOuterDiameter.toFixed(1)}
+                  </span>
+                  <span className="text-sm font-semibold text-emerald-700">mm</span>
+                </div>
+                <div className="text-[10px] text-slate-600 font-sans">
+                  {postTapingDiameter} mm base + ({braidingLayers.length} layer(s) × 1 mm) = <strong>{braidingResults.finalOuterDiameter.toFixed(1)} mm</strong>
                 </div>
               </div>
+
             </div>
 
-            {/* Toolbar with 50-layer capacity and fast layer setters */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white p-3 rounded-lg border border-slate-200 text-xs shadow-2xs font-sans gap-2">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-slate-700 font-medium">Layers Configured:</span>
-                <span className="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                  {braidingLayers.length} / 50
+            {/* Toolbar for Layers */}
+            <div className="flex items-center justify-between bg-white p-3 rounded-lg border border-slate-200 text-xs shadow-2xs font-sans">
+              <div className="flex items-center gap-2">
+                <span className="text-slate-700 font-medium">Number of Layers:</span>
+                <span className="font-semibold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-200">
+                  {braidingLayers.length}
                 </span>
-                <span className="text-slate-400 text-[11px] font-normal">(+{braidingResults.perLayerSetup}m setup each)</span>
+                <span className="text-slate-400 text-[11px] font-normal">(+1mm diameter & +10m setup per layer)</span>
               </div>
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <button
-                  type="button"
-                  onClick={() => setFixedLayersPreset(10)}
-                  className="text-[10px] text-blue-700 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded px-2 py-1 font-medium"
-                  title="Configure 10 layers"
-                >
-                  10 L
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFixedLayersPreset(30)}
-                  className="text-[10px] text-blue-700 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded px-2 py-1 font-medium"
-                  title="Configure 30 layers"
-                >
-                  30 L
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFixedLayersPreset(40)}
-                  className="text-[10px] text-blue-700 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded px-2 py-1 font-medium"
-                  title="Configure 40 layers"
-                >
-                  40 L
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFixedLayersPreset(50)}
-                  className="text-[10px] text-blue-700 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded px-2 py-1 font-medium"
-                  title="Configure 50 layers"
-                >
-                  50 L
-                </button>
-                <button
-                  type="button"
-                  onClick={() => addMultipleLayers(5)}
-                  disabled={braidingLayers.length >= 50}
-                  className="text-[10px] text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded px-2 py-1 font-medium disabled:opacity-50"
-                  title="Add 5 layers at once"
-                >
-                  +5
-                </button>
+              <div className="flex items-center gap-2">
                 {braidingLayers.length > 1 && (
                   <button
                     type="button"
                     onClick={applyFirstLayerToAll}
-                    className="text-[10px] text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded px-2 py-1 font-medium"
+                    className="text-[11px] text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded px-2.5 py-1 transition-colors font-medium"
                   >
-                    Match L1
+                    Match All to Layer 1
                   </button>
                 )}
                 <button
                   type="button"
                   onClick={addLayer}
-                  disabled={braidingLayers.length >= 50}
+                  disabled={braidingLayers.length >= 12}
                   className="flex items-center gap-1 text-[11px] bg-emerald-600 hover:bg-emerald-500 text-white rounded px-2.5 py-1 font-medium transition-colors disabled:opacity-50 shadow-2xs"
                 >
                   <Plus className="w-3.5 h-3.5" /> Add Layer
@@ -758,76 +618,51 @@ export default function InputPanel({
               </div>
             </div>
 
-            {/* 2-Machine Tandem Notification Banner */}
-            {tandemBraidingEnabled && (
-              <div className="bg-emerald-50/80 border border-emerald-200 rounded-lg p-2.5 text-xs text-emerald-950 flex flex-col md:flex-row md:items-center justify-between gap-2 shadow-2xs">
-                <div className="flex items-start md:items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0 mt-1 md:mt-0 animate-pulse" />
-                  <span>
-                    <strong>2-Machine Tandem Braiding Active:</strong> Consecutive layers with identical bobbin structures run together (+{tandemOffset}m stagger). <strong>Rule:</strong> The final layer is always braided alone.
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="bg-white px-2 py-0.5 rounded border border-emerald-300 font-semibold text-emerald-800 text-[11px]">
-                    {braidingResults.pairCount || 0} Pairs ({((braidingResults.pairCount || 0) * 2)} Layers) + {braidingResults.singleCount || 0} Single Runs
-                  </span>
-                </div>
-              </div>
-            )}
-
             {/* Individual Layer Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {braidingLayers.map((layer, index) => {
-                const calc = braidingResults.layers[index] || { ratePerMeter: 2.0, layerTime: 30 };
+              {braidingResults.layers.map((layer, index) => {
                 return (
                   <div 
-                    key={layer.id || index}
-                    className={`border rounded-xl p-3 space-y-2.5 shadow-2xs transition-all ${
-                      calc.isTandem
-                        ? calc.runMode === 'tandem_primary'
-                          ? 'bg-white border-emerald-300 ring-1 ring-emerald-200'
-                          : 'bg-emerald-50/30 border-teal-300 ring-1 ring-teal-200'
-                        : index === braidingLayers.length - 1 && braidingLayers.length > 1
-                          ? 'bg-amber-50/30 border-amber-300'
-                          : 'bg-white border-slate-200'
-                    }`}
+                    key={index}
+                    className="bg-white border border-slate-200 rounded-xl p-3.5 space-y-2.5 shadow-2xs relative"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className={`w-5 h-5 rounded-full font-sans text-[11px] font-medium flex items-center justify-center border ${
-                          calc.isTandem
-                            ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                            : index === braidingLayers.length - 1 && braidingLayers.length > 1
-                              ? 'bg-amber-100 text-amber-800 border-amber-300'
-                              : 'bg-slate-100 text-slate-800 border-slate-300'
-                        }`}>
+                        <span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 font-sans text-xs font-semibold flex items-center justify-center border border-emerald-300">
                           L{index + 1}
                         </span>
-                        <span className="text-xs font-semibold text-slate-900 font-sans">
-                          Braiding Layer {index + 1}
-                        </span>
+                        <div>
+                          <span className="text-xs font-semibold text-slate-900 font-sans">
+                            Braiding Layer {index + 1}
+                          </span>
+                          <span className="text-[10px] text-slate-400 block">
+                            Entering Dia: <strong className="text-slate-700">{layer.incomingDiameter.toFixed(1)} mm</strong>
+                          </span>
+                        </div>
                       </div>
 
-                      {/* Run Mode Badge */}
-                      <div className="flex items-center gap-1.5">
-                        {calc.isTandem && calc.runMode === 'tandem_primary' && (
-                          <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200 font-medium">
-                            🔗 Machine 1 (Tandem Lead)
+                      {/* Execution mode badge (Tandem vs Solo) */}
+                      <div className="flex items-center gap-1">
+                        {layer.executionMode === 'tandem_primary' && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 font-semibold border border-blue-200 flex items-center gap-1">
+                            <Zap className="w-3 h-3 text-blue-600" />
+                            Tandem with L{layer.pairedWith} (+5m lag)
                           </span>
                         )}
-                        {calc.isTandem && calc.runMode === 'tandem_secondary' && (
-                          <span className="text-[10px] px-2 py-0.5 rounded bg-teal-100 text-teal-800 border border-teal-200 font-medium">
-                            🔗 Machine 2 (+{calc.staggerOffset}m stagger)
+                        {layer.executionMode === 'tandem_secondary' && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium border border-blue-200 flex items-center gap-1">
+                            <Zap className="w-3 h-3 text-blue-500" />
+                            Tandem with L{layer.pairedWith}
                           </span>
                         )}
-                        {!calc.isTandem && index === braidingLayers.length - 1 && braidingLayers.length > 1 && (
-                          <span className="text-[10px] px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-200 font-medium" title="Rule: Final layer is always braided alone">
-                            🛑 Single (Final Layer Alone)
+                        {layer.executionMode === 'solo_final' && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-semibold border border-amber-200">
+                            Final Solo Layer
                           </span>
                         )}
-                        {!calc.isTandem && !(index === braidingLayers.length - 1 && braidingLayers.length > 1) && (
-                          <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 font-medium">
-                            ⚡ Single Run
+                        {layer.executionMode === 'solo' && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-medium border border-slate-200">
+                            Solo Run
                           </span>
                         )}
 
@@ -871,21 +706,13 @@ export default function InputPanel({
                       </div>
                     </div>
 
+                    {/* Diameter Range and Speed Match */}
                     <div className="bg-slate-50 rounded p-2 text-[11px] flex items-center justify-between border border-slate-200 font-sans">
-                      <span className="text-slate-600 font-normal">
-                        Speed: <strong className="text-emerald-700 font-medium">{calc.ratePerMeter} min/m</strong>
-                        {calc.isTandem && calc.runMode === 'tandem_secondary' && (
-                          <span className="text-teal-700 ml-1">(+5m stagger)</span>
-                        )}
+                      <span className="text-slate-600">
+                        Dia: <strong>{layer.incomingDiameter.toFixed(1)}mm</strong> ({layer.matchedRange}mm) $\to$ <strong className="text-emerald-700">{layer.ratePerMeter} min/m</strong>
                       </span>
                       <span className="text-slate-900 font-medium">
-                        {calc.isTandem && calc.runMode === 'tandem_secondary' ? (
-                          <span title={`Nominal process time: ${calc.layerTime.toFixed(1)} mins, but runs concurrently on Machine 2 with only a ${calc.staggerOffset} min stagger`}>
-                            +{calc.effectiveTime.toFixed(1)}m added <span className="text-slate-400 font-normal line-through">({calc.layerTime.toFixed(1)}m)</span>
-                          </span>
-                        ) : (
-                          <span>= {calc.layerTime.toFixed(1)} mins</span>
-                        )}
+                        Solo: {layer.soloRunTime.toFixed(1)}m
                       </span>
                     </div>
                   </div>
@@ -893,24 +720,41 @@ export default function InputPanel({
               })}
             </div>
 
-            {/* Braiding formula note */}
-            <div className="mt-3 pt-2.5 border-t border-blue-100 text-xs text-slate-600 flex flex-col sm:flex-row sm:items-center sm:justify-between font-sans gap-1">
+            {/* Braiding Execution Blocks (Tandem breakdown summary) */}
+            <div className="bg-white p-3 rounded-lg border border-slate-200 text-xs space-y-1.5 font-sans">
+              <span className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider block">
+                Machine Schedule & Tandem Run Breakdown:
+              </span>
+              <div className="space-y-1">
+                {braidingResults.executionBlocks.map((block, bIdx) => (
+                  <div key={bIdx} className="flex items-center justify-between text-[11px] text-slate-600 border-b border-slate-100 pb-1">
+                    <span className="flex items-center gap-1.5">
+                      {block.type === 'tandem' ? (
+                        <Zap className="w-3 h-3 text-blue-600 shrink-0" />
+                      ) : (
+                        <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                      )}
+                      <span>{block.explanation}</span>
+                    </span>
+                    <strong className="text-slate-900">{block.time.toFixed(1)} mins</strong>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Braiding Total Note */}
+            <div className="mt-3 pt-2.5 border-t border-blue-100 text-xs text-slate-600 flex items-center justify-between font-sans">
               <span className="font-normal text-slate-500">
-                Braiding: {braidingResults.setupTime}m setup ({braidingResults.baseSetup}m base + {braidingLayers.length}×{braidingResults.perLayerSetup}m) + {braidingResults.processTime.toFixed(1)}m run
-                {braidingResults.timeSaved > 0 && (
-                  <strong className="text-emerald-700 font-medium ml-1">
-                    (-{braidingResults.timeSaved.toFixed(1)}m saved via 2 tandem machines)
-                  </strong>
-                )}
+                Braiding: {braidingResults.setupTime}m setup + {braidingResults.processTime.toFixed(1)}m run
               </span>
               <span className="font-medium text-emerald-700">
-                = {braidingResults.totalTime.toFixed(1)} min ({braidingResults.totalHours.toFixed(2)} hrs)
+                = {braidingResults.totalTime.toFixed(1)} min ({(braidingResults.totalTime / 60).toFixed(2)} hrs)
               </span>
             </div>
 
-            {/* Advanced Overrides for Braiding */}
+            {/* Advanced Overrides */}
             {showAdvanced && (
-              <div className="mt-3 p-3 bg-white rounded-lg border border-emerald-200 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs font-sans">
+              <div className="mt-3 p-3 bg-white rounded-lg border border-emerald-200 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-sans">
                 <div>
                   <label className="text-slate-600 block mb-1 font-medium">Base Setup (min):</label>
                   <input
@@ -919,7 +763,7 @@ export default function InputPanel({
                     onChange={(e) => setBraidingBaseSetup(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-300 rounded px-2.5 py-1 text-slate-900 font-normal"
                   />
-                  <span className="text-[10px] text-slate-400 font-normal">Base setup {braidingResults.baseSetup} mins</span>
+                  <span className="text-[10px] text-slate-400 font-normal">Fixed baseline 90 mins</span>
                 </div>
                 <div>
                   <label className="text-slate-600 block mb-1 font-medium">Setup per Layer (min):</label>
@@ -929,32 +773,7 @@ export default function InputPanel({
                     onChange={(e) => setBraidingSetupPerLayer(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-300 rounded px-2.5 py-1 text-slate-900 font-normal"
                   />
-                  <span className="text-[10px] text-slate-400 font-normal">{braidingResults.perLayerSetup} mins per layer</span>
-                </div>
-                <div>
-                  <label className="text-slate-600 block mb-1 font-medium">Tandem Stagger (min):</label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="60"
-                    step="1"
-                    value={tandemOffset}
-                    onChange={(e) => setTandemOffset(Number(e.target.value))}
-                    className="w-full bg-slate-50 border border-slate-300 rounded px-2.5 py-1 text-slate-900 font-normal"
-                  />
-                  <span className="text-[10px] text-slate-400 font-normal">Machine 2 start delay (default 5m)</span>
-                </div>
-                <div className="flex flex-col justify-center">
-                  <label className="flex items-center gap-2 cursor-pointer font-medium text-slate-700 mt-2">
-                    <input
-                      type="checkbox"
-                      checked={tandemBraidingEnabled}
-                      onChange={(e) => setTandemBraidingEnabled(e.target.checked)}
-                      className="w-4 h-4 rounded text-emerald-600 border-slate-300 focus:ring-emerald-500"
-                    />
-                    <span>Enable 2-Machine Tandem</span>
-                  </label>
-                  <span className="text-[10px] text-slate-400 mt-1">Parallel matching layers</span>
+                  <span className="text-[10px] text-slate-400 font-normal">10 mins per layer</span>
                 </div>
               </div>
             )}
@@ -962,9 +781,9 @@ export default function InputPanel({
         )}
       </div>
 
-      {/* 5. Finishing Operations (Auto-Identified from Previous Data) */}
-      <div className="bg-[#f8faff] rounded-xl p-4 border border-blue-100 shadow-2xs space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      {/* 5. Finishing Operations (Optional) */}
+      <div className="bg-[#f8faff] rounded-xl p-4 border border-blue-100 shadow-2xs">
+        <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-3">
             <input
               type="checkbox"
@@ -974,197 +793,40 @@ export default function InputPanel({
               className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300"
             />
             <label htmlFor="includeFinishing" className="text-xs font-semibold uppercase tracking-wider text-slate-800 flex items-center gap-2 cursor-pointer font-heading">
-              <CheckCircle2 className="w-4 h-4 text-amber-600" /> 5. Finishing Operations (Auto-Calculated)
+              <CheckCircle2 className="w-4 h-4 text-amber-600" /> 5. Finishing Operations (Optional)
             </label>
           </div>
-          <div className="flex items-center gap-2">
-            <span className={`text-xs px-2.5 py-0.5 rounded-full font-sans font-medium ${
-              includeFinishing ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-slate-200 text-slate-500'
-            }`}>
-              {includeFinishing ? `${finishingResults?.totalTime?.toFixed(1) || 0} min (${finishingResults?.totalHours?.toFixed(2) || 0} hrs)` : 'Bypassed'}
-            </span>
-          </div>
+          <span className={`text-xs px-2.5 py-0.5 rounded-full font-sans font-medium ${
+            includeFinishing ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-slate-200 text-slate-500'
+          }`}>
+            {includeFinishing ? 'Active' : 'Optional'}
+          </span>
         </div>
 
-        {/* Auto-Detection Indicator Banner */}
         {includeFinishing && (
-          <>
-            <div className="bg-amber-50/70 border border-amber-200 rounded-lg p-2.5 text-xs text-slate-700 flex flex-col md:flex-row md:items-center justify-between gap-2 shadow-2xs font-sans">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-semibold text-amber-900">Auto-Detected Context:</span>
-                <span className="bg-white px-2 py-0.5 rounded border border-amber-300 font-medium text-amber-800 text-[11px]">
-                  Type: {cableType}
-                </span>
-                <span className="bg-white px-2 py-0.5 rounded border border-amber-300 font-medium text-amber-800 text-[11px]">
-                  Length: {length}m
-                </span>
-                <span className="bg-white px-2 py-0.5 rounded border border-amber-300 font-medium text-amber-800 text-[11px]">
-                  Rounds: {rounds}
-                </span>
-                <span className="bg-white px-2 py-0.5 rounded border border-amber-300 font-medium text-amber-800 text-[11px]">
-                  Fitting: {fittingType} {fittingSize}
-                </span>
-                <span className="bg-white px-2 py-0.5 rounded border border-amber-300 font-medium text-amber-800 text-[11px]">
-                  OD: {cableOD}mm
-                </span>
+          <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-2 font-sans">
+            {activeFinishing.map((item) => (
+              <div key={item.id} className="bg-white border border-slate-200 rounded-lg p-2.5 text-xs space-y-1.5 shadow-2xs">
+                <label className="font-medium text-slate-800 block truncate" title={item.name}>
+                  {item.name}
+                </label>
+                <select
+                  value={selectedFinishing[item.id] ?? ''}
+                  onChange={(e) => handleFinishingSelect(item.id, e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-300 rounded px-2 py-1 text-slate-900 text-xs outline-none font-normal"
+                >
+                  <option value="">None / Not Required</option>
+                  {item.specs.map((s, idx) => (
+                    <option key={idx} value={idx}>
+                      {s.spec} ({s.processTime} min)
+                    </option>
+                  ))}
+                </select>
               </div>
-              <span className="text-[11px] text-slate-500 font-normal">
-                Specs auto-matched from rate tables
-              </span>
-            </div>
-
-            {/* List of auto-matched operations */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1 font-sans">
-              {(finishingResults?.allOperations || []).map((op) => {
-                const isWooden = op.note?.includes('Wooden Box');
-                return (
-                  <div 
-                    key={op.id} 
-                    className={`border rounded-xl p-3 space-y-2 text-xs shadow-2xs transition-all ${
-                      op.enabled && op.isApplicable
-                        ? isWooden
-                          ? 'bg-amber-50/40 border-amber-300'
-                          : 'bg-white border-slate-200'
-                        : 'bg-slate-50 border-slate-200 opacity-60'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <label className="flex items-center gap-2 font-semibold text-slate-900 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={op.enabled}
-                          disabled={!op.isApplicable}
-                          onChange={() => handleFinishingToggle(op.id, op.enabled)}
-                          className="w-3.5 h-3.5 rounded text-amber-600 focus:ring-amber-500 border-slate-300"
-                        />
-                        <span className={!op.isApplicable ? 'line-through text-slate-400' : ''}>
-                          {op.name}
-                        </span>
-                      </label>
-                      {op.cableType && op.cableType !== 'All' && (
-                        <span className="text-[10px] bg-amber-50 text-amber-800 px-1.5 py-0.5 rounded border border-amber-200 shrink-0 font-medium">
-                          {op.cableType}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-between text-[11px]">
-                      <span className="text-slate-500 font-normal">
-                        Matched: <strong className="text-slate-800 font-medium">{op.spec}</strong>
-                      </span>
-                      <span className="font-bold text-slate-900">
-                        {isWooden ? (
-                          <span className="text-amber-800 bg-amber-100 px-2 py-0.5 rounded border border-amber-300">
-                            Wooden Box (0 min)
-                          </span>
-                        ) : op.enabled && op.isApplicable ? (
-                          <span className="text-amber-800">
-                            {op.processTime} min ({(op.processTime / 60).toFixed(2)} hrs)
-                          </span>
-                        ) : (
-                          <span className="text-slate-400">0 min</span>
-                        )}
-                      </span>
-                    </div>
-
-                    {/* Auto-matching Reason Note */}
-                    {op.note && (
-                      <div className="text-[10px] text-slate-500 bg-slate-50 rounded px-2 py-1 border border-slate-200 flex items-center justify-between">
-                        <span>{op.note}</span>
-                        {op.specs && op.specs.length > 1 && (
-                          <select
-                            value={op.specIndex}
-                            onChange={(e) => handleFinishingSpecChange(op.id, e.target.value)}
-                            className="text-[10px] bg-white border border-slate-300 rounded px-1.5 py-0.5 text-slate-700 outline-none ml-2"
-                            title="Override auto-matched specification"
-                          >
-                            {op.specs.map((s, idx) => (
-                              <option key={idx} value={idx}>
-                                {s.spec} ({s.processTime}m)
-                              </option>
-                            ))}
-                          </select>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Finishing formula note */}
-            <div className="mt-2 pt-2 border-t border-blue-100 text-xs text-slate-600 flex flex-col sm:flex-row sm:items-center sm:justify-between font-sans gap-1">
-              <span className="font-normal text-slate-500">
-                Finishing Operations: {finishingResults?.items?.length || 0} active operations auto-calculated
-              </span>
-              <span className="font-medium text-amber-700">
-                = {finishingResults?.totalTime?.toFixed(1) || 0} min ({finishingResults?.totalHours?.toFixed(2) || 0} hrs)
-              </span>
-            </div>
-          </>
+            ))}
+          </div>
         )}
       </div>
-
-      {/* 6. Custom Process Stage Tables (If created via "Add New Table") */}
-      {referenceData?.customTables?.length > 0 && (
-        <div className="bg-[#f8faff] rounded-xl p-4 border border-indigo-100 shadow-2xs space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-800 flex items-center gap-2 font-heading">
-              <Database className="w-4 h-4 text-indigo-600" /> 6. Custom Process Tables ({referenceData.customTables.length})
-            </span>
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 font-sans font-medium">
-              Click rows to include in calculation
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-            {referenceData.customTables.map((tbl) => {
-              const selection = selectedCustomTables?.[tbl.id] || { enabled: true, rowIndices: [] };
-              return (
-                <div key={tbl.id} className="bg-white border border-indigo-200 rounded-xl p-3 space-y-2 text-xs shadow-2xs font-sans">
-                  <div className="flex items-center justify-between border-b border-indigo-100 pb-1.5">
-                    <div>
-                      <h4 className="font-bold text-slate-900">{tbl.name}</h4>
-                      <span className="text-[10px] text-slate-500">{tbl.category}</span>
-                    </div>
-                    {tbl.fixedSetupTime > 0 && (
-                      <span className="text-[11px] font-mono text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
-                        Setup: {tbl.fixedSetupTime}m
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-[11px] text-slate-600 space-y-1.5">
-                    {tbl.rows.map((r, rIdx) => {
-                      const isRowSelected = (selection.rowIndices || []).includes(rIdx);
-                      return (
-                        <label 
-                          key={rIdx} 
-                          className={`flex items-center justify-between p-1.5 rounded cursor-pointer border transition-colors ${
-                            isRowSelected ? 'bg-indigo-50/70 border-indigo-300 font-medium' : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              checked={isRowSelected}
-                              onChange={() => handleCustomTableRowToggle(tbl.id, rIdx)}
-                              className="w-3.5 h-3.5 rounded text-indigo-600 border-slate-300 focus:ring-indigo-500"
-                            />
-                            <span>{r.item} ({r.spec})</span>
-                          </div>
-                          <strong className="text-indigo-800 font-mono">
-                            {r.processTime} min ({(Number(r.processTime) / 60).toFixed(2)} hrs)
-                          </strong>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
     </div>
   );
