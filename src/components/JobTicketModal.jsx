@@ -86,17 +86,19 @@ export default function JobTicketModal({ isOpen, onClose, results, cableName }) 
             <div>
               <div className="text-[10px] text-slate-500 uppercase">End Fittings</div>
               <div className="font-bold text-slate-950 text-sm">{inputs.fittingType}</div>
-              <div className="text-[10px] text-slate-500">{inputs.fittingSize} (2 Ends Moulded)</div>
+              <div className="text-[10px] text-slate-500">{inputs.fittingSize} ({inputs.endsCount} end{inputs.endsCount > 1 ? 's' : ''})</div>
             </div>
             <div>
-              <div className="text-[10px] text-slate-500 uppercase">Braiding & Diameters</div>
+              <div className="text-[10px] text-slate-500 uppercase">Braiding Layers</div>
               <div className="font-bold text-slate-950 text-sm">
                 {braiding.enabled ? `${braiding.layers.length} Layer(s)` : 'None'}
               </div>
               <div className="text-[10px] text-slate-500">
-                {braiding.enabled 
-                  ? `${inputs.postTapingDiameter ?? 12}mm → ${braiding.finalOuterDiameter?.toFixed(1) ?? '—'}mm OD`
-                  : 'Bypassed'}
+                {braiding.enabled ? (
+                  braiding.pairCount > 0 
+                    ? `${braiding.pairCount} Tandem Pairs + ${braiding.singleCount} Single Runs`
+                    : braiding.layers.map(l => l.desc).join(', ')
+                ) : 'Bypassed'}
               </div>
             </div>
           </div>
