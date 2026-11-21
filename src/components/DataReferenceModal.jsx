@@ -837,22 +837,22 @@ export default function DataReferenceModal({
               </div>
 
               <div>
-                <h4 className="font-bold text-slate-900 mb-2">Braiding Carrier Rates (min/m)</h4>
+                <h4 className="font-bold text-slate-900 mb-2">Braiding Carrier Rates by Diameter Range (min/m)</h4>
                 <div className="overflow-x-auto rounded-lg border border-slate-200 max-h-96">
                   <table className="w-full text-left font-mono">
                     <thead className="bg-slate-100 text-slate-600 text-[11px] sticky top-0">
                       <tr>
-                        <th className="p-2.5">Length Cohort</th>
-                        <th className="p-2.5">Description</th>
+                        <th className="p-2.5">Diameter Range (mm)</th>
+                        <th className="p-2.5">Layer Description</th>
                         <th className="p-2.5">Bobbins</th>
                         <th className="p-2.5">Type</th>
-                        <th className="p-2.5 text-emerald-700 font-bold">Speed for 1m (min)</th>
+                        <th className="p-2.5 text-emerald-700 font-bold">Speed for 1m (min/m)</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200 text-slate-800">
                       {localData.braiding.layerDetails.map((item, idx) => (
                         <tr key={idx} className="hover:bg-slate-50">
-                          <td className="p-2.5 font-bold text-slate-900">{item.lengthRange} m</td>
+                          <td className="p-2.5 font-bold text-slate-900">{item.diameterRange} mm</td>
                           <td className="p-2.5 font-bold text-emerald-700">{item.desc}</td>
                           <td className="p-2.5">{item.bobbins}</td>
                           <td className="p-2.5">Type {item.type}</td>
@@ -860,13 +860,13 @@ export default function DataReferenceModal({
                             {isEditing ? (
                               <input
                                 type="number"
-                                step="0.0001"
-                                value={item.leadTimePerMeter}
-                                onChange={(e) => handleBraidingLayerChange(idx, 'leadTimePerMeter', e.target.value)}
+                                step="0.01"
+                                value={item.ratePerMeter ?? item.leadTimePerMeter ?? ''}
+                                onChange={(e) => handleBraidingLayerChange(idx, 'ratePerMeter', e.target.value)}
                                 className="w-24 px-2 py-1 bg-white border border-emerald-400 rounded text-emerald-800 font-mono font-bold text-xs"
                               />
                             ) : (
-                              <span className="font-bold text-emerald-700">{item.leadTimePerMeter}</span>
+                              <span className="font-bold text-emerald-700">{item.ratePerMeter ?? item.leadTimePerMeter} min/m</span>
                             )}
                           </td>
                         </tr>

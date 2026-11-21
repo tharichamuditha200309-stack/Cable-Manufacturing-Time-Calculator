@@ -27,33 +27,50 @@ export function getTapingRange(length, tapingData = TAPING_DATA) {
 }
 
 /**
- * Find matching braiding rate for length, bobbins, and type
+ * Find matching braiding rate by cable diameter, bobbins, and type
+ * Based on exact sheet:
+ * 16×1: 0-10 (3.0), 10-20 (2.5)
+ * 16×2: 0-10 (2.7), 10-20 (2.25)
+ * 32×1: 0-10 (4.0), 10-20 (2.5), 20-30 (2.25)
+ * 32×2: 0-10 (3.6), 10-20 (2.7), 20-30 (2.5)
+ * 64×1: 20-30 (1.5), 30-50 (1.4)
+ * 64×2: 20-30 (1.35), 30-50 (1.26)
  */
-export function getBraidingRate(length, bobbins, type, braidingData = BRAIDING_DATA) {
-  const l = Number(length) || 0;
+export function getBraidingRateByDiameter(diameter, bobbins, type, braidingData = BRAIDING_DATA) {
+  const d = Math.max(0.1, Number(diameter) || 0);
   const layers = braidingData?.layerDetails || BRAIDING_DATA.layerDetails;
+  const numBobbins = Number(bobbins);
+  const numType = Number(type);
 
-  let lenRange = '1-10';
-  if (l > 10 && l <= 20) lenRange = '10-20';
-  else if (l > 20 && l <= 30) lenRange = '20-30';
-  else if (l > 30 && l <= 40) lenRange = '30-40';
-  else if (l > 40) lenRange = '41-50';
+  // Determine standard diameter bucket
+  let diaRange = '0-10';
+  if (d > 10 && d <= 20) diaRange = '10-20';
+  else if (d > 20 && d <= 30) diaRange = '20-30';
+  else if (d > 30) diaRange = '30-50';
 
-  const match = layers.find(
-    item => item.lengthRange === lenRange && Number(item.bobbins) === Number(bobbins) && Number(item.type) === Number(type)
+  // Find exact match
+  const exact = layers.find(
+    item => item.diameterRange === diaRange && Number(item.bobbins) === numBobbins && Number(item.type) === numType
+  );
+  if (exact) {
+    return { ...exact, matchedRange: diaRange };
+  }
+
+  // Fallback for bobbins not in that diameter range (e.g. 64 bobbins at < 20mm or 16 bobbins at > 20mm)
+  const matches = layers.filter(
+    item => Number(item.bobbins) === numBobbins && Number(item.type) === numType
   );
 
-  if (match) return match;
+  if (matches.length > 0) {
+    if (d <= matches[0].minDia) return { ...matches[0], matchedRange: matches[0].diameterRange };
+    return { ...matches[matches.length - 1], matchedRange: matches[matches.length - 1].diameterRange };
+  }
 
-  // Fallback if specific length range not measured
-  const fallback = layers.find(
-    item => Number(item.bobbins) === Number(bobbins) && Number(item.type) === Number(type)
-  );
-
-  return fallback || {
-    desc: `${bobbins}×${type}`,
-    leadTimePerMeter: 2.5,
-    avgBraidingTimePerLayer: 45
+  return {
+    diameterRange: diaRange,
+    desc: `${numBobbins}×${numType}`,
+    ratePerMeter: 2.5,
+    matchedRange: diaRange
   };
 }
 
@@ -289,7 +306,8 @@ export function calculateCableTimes({
   customTapingRate = null,
 
   includeBraiding = true,
-  cableOD = 25, // mm Outer Diameter (used for box prep)
+  postTapingDiameter = 12.0, // mm Post-Taping Core Diameter (input under Taping)
+  cableOD = 25, // legacy mm Outer Diameter
   braidingBaseSetup = 90, // mins
   braidingSetupPerLayer = 10, // mins per layer
   braidingLayers = [
@@ -313,7 +331,11 @@ export function calculateCableTimes({
   const numLength = Math.max(0.1, Number(length) || 1);
   const numRounds = Math.max(1, Number(rounds) || 1);
   const numEnds = Math.max(0, Number(endsCount) || 1);
-  const numCableOD = Math.max(0.1, Number(cableOD) || 25);
+  
+  // Diameter growth: starts at Post-Taping diameter, grows by 1.0mm per braided layer
+  const startDiameter = Math.max(0.1, Number(postTapingDiameter) || Number(cableOD) || 12.0);
+  const layerCount = includeBraiding ? braidingLayers.length : 0;
+  const finalOuterDiameter = startDiameter + (layerCount * 1.0);
 
   // 1. WINDING CALCULATION
   const isFlex = String(cableType || '').toLowerCase().includes('flex');
@@ -333,7 +355,7 @@ export function calculateCableTimes({
     : 1.0;
   const windingLabourHours = (windingTotalTime / 60) * windingLabourHoursRatio;
 
-  // 2. MOULDING CALCULATION
+  // 2. MOULDING CALCULATION (1 or 2 Ends as chosen by user)
   let mouldingLeadTime = 0;
   let mouldingLabourHours = 0;
   let mouldingDetail = null;
@@ -376,7 +398,7 @@ export function calculateCableTimes({
     tapingLabourHours = (tapingTotalTime / 60) * tapingLabourRatio;
   }
 
-  // 4. BRAIDING CALCULATION
+  // 4. BRAIDING CALCULATION WITH DIAMETER SPEED & TANDEM PAIRING
   let braidingSetupTime = 0;
   let braidingProcessTime = 0;
   let braidingSequentialProcessTime = 0;
@@ -390,17 +412,18 @@ export function calculateCableTimes({
   const numTandemOffset = Math.max(0, Number(tandemOffset) || 0);
 
   if (includeBraiding && braidingLayers.length > 0) {
-    const layerCount = braidingLayers.length;
     const baseSetup = Number(braidingBaseSetup ?? braidingData.baseSetupTime ?? 90) || 0;
     const perLayerSetup = Number(braidingSetupPerLayer ?? braidingData.setupTimePerLayer ?? 10) || 0;
     braidingSetupTime = baseSetup + (layerCount * perLayerSetup);
 
-    // 1. Calculate raw layer nominal times
+    // 1. Calculate raw layer nominal times based on each layer's incoming diameter
     const rawLayers = braidingLayers.map((layer, idx) => {
-      const match = getBraidingRate(numLength, layer.bobbins, layer.type, braidingData);
+      const incomingDiameter = startDiameter + (idx * 1.0);
+      const outgoingDiameter = incomingDiameter + 1.0;
+      const match = getBraidingRateByDiameter(incomingDiameter, layer.bobbins, layer.type, braidingData);
       const rate = (layer.customRate !== null && layer.customRate !== undefined && layer.customRate !== '')
         ? Number(layer.customRate)
-        : Number(match.leadTimePerMeter);
+        : Number(match.ratePerMeter);
       
       const layerTime = rate * numLength;
       braidingSequentialProcessTime += layerTime;
@@ -410,6 +433,9 @@ export function calculateCableTimes({
         bobbins: Number(layer.bobbins),
         type: Number(layer.type),
         desc: `${layer.bobbins}×${layer.type}`,
+        incomingDiameter,
+        outgoingDiameter,
+        matchedRange: match.matchedRange || match.diameterRange,
         ratePerMeter: rate,
         layerTime,
         avgBraidingTimePerLayer: match.avgBraidingTimePerLayer
@@ -427,12 +453,6 @@ export function calculateCableTimes({
       const current = rawLayers[i];
       const next = (i + 1 < rawLayers.length) ? rawLayers[i + 1] : null;
 
-      // Check pairing eligibility:
-      // Can pair if:
-      // 1. Tandem enabled
-      // 2. Next layer exists
-      // 3. Next layer is NOT the cable's final layer (i + 1 !== rawLayers.length - 1)
-      // 4. Same bobbin structure (bobbins and type match)
       const isNextTheLastLayer = (i + 1) === (rawLayers.length - 1);
       const sameStructure = next && 
         current.bobbins === next.bobbins && 
@@ -536,14 +556,14 @@ export function calculateCableTimes({
   const combinedTapingBraidingHours = combinedTapingBraidingTime / 60;
   const combinedTapingBraidingLabour = tapingLabourHours + braidingLabourHours;
 
-  // 5. FINISHING CALCULATION (Auto-matched from previous inputs)
+  // 5. FINISHING CALCULATION (Auto-matched from previous inputs using finalOuterDiameter)
   const matchedFinishingOps = autoMatchFinishingOperations({
     cableType,
     length: numLength,
     rounds: numRounds,
     fittingType,
     fittingSize,
-    cableOD: numCableOD,
+    cableOD: finalOuterDiameter,
     finishingData,
     userSelections: selectedFinishing
   });
@@ -627,7 +647,9 @@ export function calculateCableTimes({
       length: numLength,
       lengthMm: numLength * 1000,
       rounds: numRounds,
-      cableOD: numCableOD,
+      postTapingDiameter: startDiameter,
+      cableOD: finalOuterDiameter,
+      finalOuterDiameter,
       fittingType,
       fittingSize,
       endsCount: numEnds,
@@ -659,6 +681,7 @@ export function calculateCableTimes({
     },
     taping: {
       enabled: includeTaping,
+      postTapingDiameter: startDiameter,
       setupTime: tapingSetupTime,
       ratePerMeter: tapingRate,
       processTime: tapingProcessTime,
@@ -670,7 +693,10 @@ export function calculateCableTimes({
     },
     braiding: {
       enabled: includeBraiding,
-      cableOD: numCableOD,
+      postTapingDiameter: startDiameter,
+      finalOuterDiameter,
+      calculatedOuterDiameter: finalOuterDiameter,
+      cableOD: finalOuterDiameter,
       tandemEnabled: isTandemEnabled,
       tandemOffset: numTandemOffset,
       baseSetup: Number(braidingBaseSetup ?? braidingData.baseSetupTime ?? 90) || 0,
@@ -721,6 +747,25 @@ export function calculateCableTimes({
       items: customTableItems
     },
     totals: {
+      grandTotalMinutes,
+      grandTotalHours: totalHours,
+      formattedHours: `${totalHours.toFixed(2)} hrs`,
+      formattedTotal: `${totalHours.toFixed(2)} hrs (${Math.floor(grandTotalMinutes / 60)}h ${Math.round(grandTotalMinutes % 60)}m)`,
+      formattedTime: `${totalHours.toFixed(2)} hrs`,
+      totalMinutesStr: `${grandTotalMinutes.toFixed(1)} min`,
+      totalSetupTime,
+      setupHours: totalSetupTime / 60,
+      formattedSetupTime: `${totalSetupTime.toFixed(1)} min (${(totalSetupTime / 60).toFixed(2)} hrs)`,
+      totalProcessTime,
+      processHours: totalProcessTime / 60,
+      formattedProcessTime: `${totalProcessTime.toFixed(1)} min (${(totalProcessTime / 60).toFixed(2)} hrs)`,
+      totalLabourHours,
+      productionShifts: Number(productionShifts.toFixed(2)),
+      setupPercent: grandTotalMinutes > 0 ? Math.round((totalSetupTime / grandTotalMinutes) * 100) : 0,
+      processPercent: grandTotalMinutes > 0 ? Math.round((totalProcessTime / grandTotalMinutes) * 100) : 0
+    }
+  };
+}
       grandTotalMinutes,
       grandTotalHours: totalHours,
       formattedHours: `${totalHours.toFixed(2)} hrs`,

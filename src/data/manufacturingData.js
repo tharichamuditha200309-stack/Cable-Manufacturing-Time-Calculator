@@ -130,51 +130,27 @@ export const TAPING_DATA = {
 export const BRAIDING_DATA = {
   baseSetupTime: 90, // minutes (setup for all cables)
   setupTimePerLayer: 10, // minutes added for each layer
+  diameterIncrementPerLayer: 1.0, // mm added to diameter per braided layer
+  tandemMachineLag: 5.0, // minutes lag when running 2 machines in tandem
   bobbinOptions: [16, 32, 64],
   typeOptions: [1, 2],
-  // Rate matrix by length range and layer configuration
+  
+  // Exact table from sheet: Diameter Range, Layer Description, Average Braiding time for 1m
   layerDetails: [
-    // 32 x 1
-    { lengthRange: '1-10', minLen: 1, maxLen: 10, bobbins: 32, type: 1, desc: '32×1', avgBraidingTimePerLayer: 15, leadTimePerMeter: 2.0 },
-    { lengthRange: '10-20', minLen: 10, maxLen: 20, bobbins: 32, type: 1, desc: '32×1', avgBraidingTimePerLayer: 30, leadTimePerMeter: 2.6615 },
-    { lengthRange: '20-30', minLen: 20, maxLen: 30, bobbins: 32, type: 1, desc: '32×1', avgBraidingTimePerLayer: 60, leadTimePerMeter: 2.0796 },
-    { lengthRange: '30-40', minLen: 30, maxLen: 40, bobbins: 32, type: 1, desc: '32×1', avgBraidingTimePerLayer: 60, leadTimePerMeter: 1.94 },
-    { lengthRange: '41-50', minLen: 40, maxLen: 50, bobbins: 32, type: 1, desc: '32×1', avgBraidingTimePerLayer: 60, leadTimePerMeter: 1.94 },
-
-    // 32 x 2
-    { lengthRange: '1-10', minLen: 1, maxLen: 10, bobbins: 32, type: 2, desc: '32×2', avgBraidingTimePerLayer: 25, leadTimePerMeter: 2.5 },
-    { lengthRange: '10-20', minLen: 10, maxLen: 20, bobbins: 32, type: 2, desc: '32×2', avgBraidingTimePerLayer: 35, leadTimePerMeter: 2.2 },
-    { lengthRange: '20-30', minLen: 20, maxLen: 30, bobbins: 32, type: 2, desc: '32×2', avgBraidingTimePerLayer: 45, leadTimePerMeter: 1.5597 },
-    { lengthRange: '30-40', minLen: 30, maxLen: 40, bobbins: 32, type: 2, desc: '32×2', avgBraidingTimePerLayer: 60, leadTimePerMeter: 1.94 },
-    { lengthRange: '41-50', minLen: 40, maxLen: 50, bobbins: 32, type: 2, desc: '32×2', avgBraidingTimePerLayer: 60, leadTimePerMeter: 1.94 },
-
-    // 16 x 1
-    { lengthRange: '1-10', minLen: 1, maxLen: 10, bobbins: 16, type: 1, desc: '16×1', avgBraidingTimePerLayer: 45, leadTimePerMeter: 4.5 },
-    { lengthRange: '10-20', minLen: 10, maxLen: 20, bobbins: 16, type: 1, desc: '16×1', avgBraidingTimePerLayer: 35, leadTimePerMeter: 7.307 },
-    { lengthRange: '20-30', minLen: 20, maxLen: 30, bobbins: 16, type: 1, desc: '16×1', avgBraidingTimePerLayer: 45, leadTimePerMeter: 4.034 },
-    { lengthRange: '30-40', minLen: 30, maxLen: 40, bobbins: 16, type: 1, desc: '16×1', avgBraidingTimePerLayer: 50, leadTimePerMeter: 3.8 },
-    { lengthRange: '41-50', minLen: 40, maxLen: 50, bobbins: 16, type: 1, desc: '16×1', avgBraidingTimePerLayer: 50, leadTimePerMeter: 3.8 },
-
-    // 16 x 2
-    { lengthRange: '1-10', minLen: 1, maxLen: 10, bobbins: 16, type: 2, desc: '16×2', avgBraidingTimePerLayer: 40, leadTimePerMeter: 4.841 },
-    { lengthRange: '10-20', minLen: 10, maxLen: 20, bobbins: 16, type: 2, desc: '16×2', avgBraidingTimePerLayer: 60, leadTimePerMeter: 4.0 },
-    { lengthRange: '20-30', minLen: 20, maxLen: 30, bobbins: 16, type: 2, desc: '16×2', avgBraidingTimePerLayer: 60, leadTimePerMeter: 3.5 },
-    { lengthRange: '30-40', minLen: 30, maxLen: 40, bobbins: 16, type: 2, desc: '16×2', avgBraidingTimePerLayer: 65, leadTimePerMeter: 3.2 },
-    { lengthRange: '41-50', minLen: 40, maxLen: 50, bobbins: 16, type: 2, desc: '16×2', avgBraidingTimePerLayer: 65, leadTimePerMeter: 3.2 },
-
-    // 64 x 1 (Carrier extension supported in machine shop)
-    { lengthRange: '1-10', minLen: 1, maxLen: 10, bobbins: 64, type: 1, desc: '64×1', avgBraidingTimePerLayer: 25, leadTimePerMeter: 3.2 },
-    { lengthRange: '10-20', minLen: 10, maxLen: 20, bobbins: 64, type: 1, desc: '64×1', avgBraidingTimePerLayer: 45, leadTimePerMeter: 3.0 },
-    { lengthRange: '20-30', minLen: 20, maxLen: 30, bobbins: 64, type: 1, desc: '64×1', avgBraidingTimePerLayer: 75, leadTimePerMeter: 2.8 },
-    { lengthRange: '30-40', minLen: 30, maxLen: 40, bobbins: 64, type: 1, desc: '64×1', avgBraidingTimePerLayer: 80, leadTimePerMeter: 2.6 },
-    { lengthRange: '41-50', minLen: 40, maxLen: 50, bobbins: 64, type: 1, desc: '64×1', avgBraidingTimePerLayer: 85, leadTimePerMeter: 2.5 },
-
-    // 64 x 2
-    { lengthRange: '1-10', minLen: 1, maxLen: 10, bobbins: 64, type: 2, desc: '64×2', avgBraidingTimePerLayer: 30, leadTimePerMeter: 3.8 },
-    { lengthRange: '10-20', minLen: 10, maxLen: 20, bobbins: 64, type: 2, desc: '64×2', avgBraidingTimePerLayer: 55, leadTimePerMeter: 3.5 },
-    { lengthRange: '20-30', minLen: 20, maxLen: 30, bobbins: 64, type: 2, desc: '64×2', avgBraidingTimePerLayer: 80, leadTimePerMeter: 3.1 },
-    { lengthRange: '30-40', minLen: 30, maxLen: 40, bobbins: 64, type: 2, desc: '64×2', avgBraidingTimePerLayer: 90, leadTimePerMeter: 2.9 },
-    { lengthRange: '41-50', minLen: 40, maxLen: 50, bobbins: 64, type: 2, desc: '64×2', avgBraidingTimePerLayer: 95, leadTimePerMeter: 2.8 },
+    { diameterRange: '0-10', minDia: 0, maxDia: 10, bobbins: 16, type: 1, desc: '16×1', ratePerMeter: 3.0 },
+    { diameterRange: '10-20', minDia: 10, maxDia: 20, bobbins: 16, type: 1, desc: '16×1', ratePerMeter: 2.5 },
+    { diameterRange: '0-10', minDia: 0, maxDia: 10, bobbins: 16, type: 2, desc: '16×2', ratePerMeter: 2.7 },
+    { diameterRange: '10-20', minDia: 10, maxDia: 20, bobbins: 16, type: 2, desc: '16×2', ratePerMeter: 2.25 },
+    { diameterRange: '0-10', minDia: 0, maxDia: 10, bobbins: 32, type: 1, desc: '32×1', ratePerMeter: 4.0 },
+    { diameterRange: '10-20', minDia: 10, maxDia: 20, bobbins: 32, type: 1, desc: '32×1', ratePerMeter: 2.5 },
+    { diameterRange: '20-30', minDia: 20, maxDia: 30, bobbins: 32, type: 1, desc: '32×1', ratePerMeter: 2.25 },
+    { diameterRange: '0-10', minDia: 0, maxDia: 10, bobbins: 32, type: 2, desc: '32×2', ratePerMeter: 3.6 },
+    { diameterRange: '10-20', minDia: 10, maxDia: 20, bobbins: 32, type: 2, desc: '32×2', ratePerMeter: 2.7 },
+    { diameterRange: '20-30', minDia: 20, maxDia: 30, bobbins: 32, type: 2, desc: '32×2', ratePerMeter: 2.5 },
+    { diameterRange: '20-30', minDia: 20, maxDia: 30, bobbins: 64, type: 1, desc: '64×1', ratePerMeter: 1.5 },
+    { diameterRange: '30-50', minDia: 30, maxDia: 50, bobbins: 64, type: 1, desc: '64×1', ratePerMeter: 1.4 },
+    { diameterRange: '20-30', minDia: 20, maxDia: 30, bobbins: 64, type: 2, desc: '64×2', ratePerMeter: 1.35 },
+    { diameterRange: '30-50', minDia: 30, maxDia: 50, bobbins: 64, type: 2, desc: '64×2', ratePerMeter: 1.26 },
   ]
 };
 
@@ -222,8 +198,8 @@ export const FINISHING_DATA = [
     matchField: 'rounds',
     specs: [
       { spec: 'Rounds 1-50', processTime: 20, labours: 4, labourHrs: 1.33, minBound: 1, maxBound: 50 },
-      { spec: 'Rounds 51-100', processTime: 25, labours: 6, labourHrs: 2.5, minBound: 51, maxBound: 100 },
-      { spec: 'Rounds 101-500', processTime: 30, labours: 10, labourHrs: 5.0, minBound: 101, maxBound: 500 },
+      { spec: 'Rounds 51-100', processTime: 30, labours: 5, labourHrs: 2.5, minBound: 51, maxBound: 100 },
+      { spec: 'Rounds 101-500', processTime: 30, labours: 6, labourHrs: 3.0, minBound: 101, maxBound: 500 },
       { spec: 'Rounds 501-1000', processTime: 40, labours: 25, labourHrs: 16.67, minBound: 501, maxBound: 1000 },
     ]
   },
@@ -234,10 +210,10 @@ export const FINISHING_DATA = [
     category: 'Handling',
     matchField: 'length',
     specs: [
-      { spec: 'Length 1-10', processTime: 30, labours: 2, labourHrs: 1.0, minBound: 0, maxBound: 10 },
-      { spec: 'Length 10.001-20', processTime: 40, labours: 4, labourHrs: 2.67, minBound: 10.001, maxBound: 20 },
-      { spec: 'Length 20.001-30', processTime: 50, labours: 4, labourHrs: 3.33, minBound: 20.001, maxBound: 30 },
-      { spec: 'Length 30.001-40', processTime: 60, labours: 4, labourHrs: 4.0, minBound: 30.001, maxBound: 40 },
+      { spec: 'Length 1-10', processTime: 15, labours: 2, labourHrs: 1.0, minBound: 0, maxBound: 10 },
+      { spec: 'Length 10.001-20', processTime: 30, labours: 4, labourHrs: 2.67, minBound: 10.001, maxBound: 20 },
+      { spec: 'Length 20.001-30', processTime: 40, labours: 4, labourHrs: 2.67, minBound: 20.001, maxBound: 30 },
+      { spec: 'Length 30.001-40', processTime: 40, labours: 5, labourHrs: 3.33, minBound: 30.001, maxBound: 40 },
     ]
   },
   { 
@@ -247,7 +223,7 @@ export const FINISHING_DATA = [
     category: 'Finishing',
     matchField: 'fittingSize',
     specs: [
-      { spec: 'Size 1', processTime: 0, labours: 0, labourHrs: 0, minBound: 0, maxBound: 1 },
+      { spec: 'Size 1', processTime: 20, labours: 1, labourHrs: 0.33, minBound: 0, maxBound: 1 },
       { spec: 'Size 2-3', processTime: 30, labours: 1, labourHrs: 0.5, minBound: 2, maxBound: 3 },
       { spec: 'Size 4-6', processTime: 60, labours: 1, labourHrs: 1.0, minBound: 4, maxBound: 6 },
     ]
@@ -260,8 +236,8 @@ export const FINISHING_DATA = [
     matchField: 'cableOD',
     woodenThreshold: 56,
     specs: [
-      { spec: '0 < OD <= 32 mm', processTime: 30, labours: 2, labourHrs: 1.0, minBound: 0, maxBound: 32 },
-      { spec: '32 < OD <= 52 mm', processTime: 45, labours: 2, labourHrs: 1.5, minBound: 32.001, maxBound: 52 },
+      { spec: '0 < OD <= 32 mm', processTime: 30, labours: 1, labourHrs: 1.0, minBound: 0, maxBound: 32 },
+      { spec: '32 < OD <= 52 mm', processTime: 45, labours: 1, labourHrs: 1.5, minBound: 32.001, maxBound: 52 },
       { spec: '52 < OD <= 56 mm', processTime: 60, labours: 2, labourHrs: 2.0, minBound: 52.001, maxBound: 56.001 },
     ]
   },
@@ -273,14 +249,14 @@ export const FINISHING_DATA = [
     matchField: 'cableOD',
     woodenThreshold: 28,
     specs: [
-      { spec: '0 < OD <= 16 mm', processTime: 30, labours: 2, labourHrs: 1.0, minBound: 0, maxBound: 16 },
-      { spec: '16 < OD <= 26 mm', processTime: 45, labours: 2, labourHrs: 1.5, minBound: 16.001, maxBound: 26 },
-      { spec: '26 < OD <= 28 mm', processTime: 60, labours: 2, labourHrs: 2.0, minBound: 26.001, maxBound: 28 },
+      { spec: '0 < OD <= 16 mm', processTime: 45, labours: 1, labourHrs: 0.75, minBound: 0, maxBound: 16 },
+      { spec: '16 < OD <= 26 mm', processTime: 90, labours: 1, labourHrs: 1.5, minBound: 16.001, maxBound: 26 },
+      { spec: '26 < OD <= 28 mm', processTime: 150, labours: 2, labourHrs: 5.0, minBound: 26.001, maxBound: 28 },
     ]
   }
 ];
 
-export const REFERENCE_DATA_VERSION = '2026.11.16_v1';
+export const REFERENCE_DATA_VERSION = '2026.11.21_v2_diameter_finishing';
 
 export const INITIAL_REFERENCE_DATA = {
   _version: REFERENCE_DATA_VERSION,
