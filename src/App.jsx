@@ -137,6 +137,7 @@ export default function App() {
       cableType,
       length,
       rounds,
+      postTapingDiameter,
       cableOD,
       windingSetup,
       customWindingRate,
@@ -163,6 +164,7 @@ export default function App() {
     cableType,
     length,
     rounds,
+    postTapingDiameter,
     cableOD,
     windingSetup,
     customWindingRate,
@@ -198,8 +200,12 @@ export default function App() {
       }),
       cableName: cableName || 'Custom Cable Calculation',
       inputs: {
+        cableType,
         length: Number(length),
         rounds: Number(rounds),
+        postTapingDiameter: Number(postTapingDiameter),
+        cableOD: results.braiding.finalOuterDiameter,
+        finalOuterDiameter: results.braiding.finalOuterDiameter,
         fittingType,
         fittingSize,
         endsCount,
@@ -243,8 +249,11 @@ export default function App() {
   const handleLoadHistoryItem = (item) => {
     if (!item) return;
     setCableName(item.cableName);
+    if (item.inputs.cableType) setCableType(item.inputs.cableType);
     setLength(item.inputs.length);
     setRounds(item.inputs.rounds);
+    if (item.inputs.postTapingDiameter !== undefined) setPostTapingDiameter(item.inputs.postTapingDiameter);
+    else if (item.inputs.cableOD !== undefined) setPostTapingDiameter(item.inputs.cableOD);
     setFittingType(item.inputs.fittingType);
     setFittingSize(item.inputs.fittingSize);
     if (item.inputs.endsCount !== undefined) setEndsCount(item.inputs.endsCount);
@@ -263,8 +272,10 @@ export default function App() {
   const handleLoadPreset = (presetId) => {
     if (presetId === 'tandem-10layer') {
       setCableName('10-Layer Tandem Braided Cable');
+      setCableType('Torquelite');
       setLength(15);
       setRounds(50);
+      setPostTapingDiameter(12.0);
       setFittingType('Thimble');
       setFittingSize('2');
       setEndsCount(2);
@@ -281,8 +292,10 @@ export default function App() {
       setIncludeFinishing(false);
     } else if (presetId === 'standard-15m') {
       setCableName('Standard 15m Control Cable');
+      setCableType('Torquelite');
       setLength(15);
       setRounds(50);
+      setPostTapingDiameter(12.0);
       setFittingType('Thimble');
       setFittingSize('2');
       setEndsCount(2);
@@ -294,8 +307,10 @@ export default function App() {
       setIncludeFinishing(false);
     } else if (presetId === 'heavy-28m') {
       setCableName('Heavy Marine 28m Armored Cable');
+      setCableType('Torquelite');
       setLength(28);
       setRounds(100);
+      setPostTapingDiameter(22.0);
       setFittingType('Spool');
       setFittingSize('OD45 - OD75');
       setEndsCount(2);
@@ -311,8 +326,10 @@ export default function App() {
       setSelectedFinishing({ cutback_shrink: 1, testing: 0 });
     } else if (presetId === 'short-6m') {
       setCableName('Compact Harness 6m');
+      setCableType('Fibrelite');
       setLength(6);
       setRounds(25);
+      setPostTapingDiameter(8.0);
       setFittingType('Thimble');
       setFittingSize('1');
       setEndsCount(2);
@@ -324,8 +341,10 @@ export default function App() {
       setIncludeFinishing(false);
     } else if (presetId === 'long-45m') {
       setCableName('Long Run 45m Spool Cable');
+      setCableType('Torquelite Flex');
       setLength(45);
       setRounds(200);
+      setPostTapingDiameter(28.0);
       setFittingType('Spool');
       setFittingSize('OD75 - OD120');
       setEndsCount(2);
@@ -344,6 +363,7 @@ export default function App() {
     setCableType('Torquelite');
     setLength(15);
     setRounds(50);
+    setPostTapingDiameter(12.0);
     setCableOD(25);
     setWindingSetup(referenceData?.winding?.fixedSetupTime ?? 30);
     setCustomWindingRate(null);
@@ -370,9 +390,12 @@ export default function App() {
     const csvContent = [
       ['Metric', 'Value'],
       ['Job/Cable Name', cableName],
+      ['Cable Construction Type', cableType],
       ['Length (m)', results.inputs.length],
       ['Length (mm)', results.inputs.lengthMm],
       ['Rounds', results.inputs.rounds],
+      ['Post-Taping Diameter (mm)', results.inputs.postTapingDiameter],
+      ['Calculated Outer Diameter (OD mm)', results.inputs.finalOuterDiameter.toFixed(1)],
       ['Fitting Type', results.inputs.fittingType],
       ['Fitting Size', results.inputs.fittingSize],
       ['Moulded Ends', results.inputs.endsCount],
@@ -402,7 +425,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#848e94] text-slate-900 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#edf4fb] text-slate-900 flex flex-col font-sans">
       
       {/* Top Application Header */}
       <Header
@@ -452,6 +475,8 @@ export default function App() {
 
               includeTaping={includeTaping}
               setIncludeTaping={setIncludeTaping}
+              postTapingDiameter={postTapingDiameter}
+              setPostTapingDiameter={setPostTapingDiameter}
               tapingSetup={tapingSetup}
               setTapingSetup={setTapingSetup}
               customTapingRate={customTapingRate}
@@ -505,11 +530,11 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="mt-auto border-t border-[#6d777d] bg-[#768087] py-4 text-center text-xs text-slate-100">
+      <footer className="mt-auto border-t border-blue-200/80 bg-white/80 backdrop-blur-xs py-4 text-center text-xs text-slate-600">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span className="font-semibold text-white">Cable Manufacturing Overall Time Calculator</span>
-          <span className="font-mono text-slate-200">
-            Overall Time = Winding (30m + Speed×L×R) + Moulding + Taping (20m + Speed×L) + Braiding (90m + 10m/layer + Speed×L)
+          <span className="font-semibold text-slate-800">Cable Manufacturing Overall Time Calculator</span>
+          <span className="font-mono text-slate-500">
+            Overall Time = Winding + Moulding + Taping & Braiding (Speed by Dia) + Finishing
           </span>
         </div>
       </footer>

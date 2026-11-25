@@ -256,7 +256,7 @@ export const FINISHING_DATA = [
   }
 ];
 
-export const REFERENCE_DATA_VERSION = '2026.11.21_v2_diameter_finishing';
+export const REFERENCE_DATA_VERSION = '2026.11.25_v3_post_tape_od';
 
 export const INITIAL_REFERENCE_DATA = {
   _version: REFERENCE_DATA_VERSION,

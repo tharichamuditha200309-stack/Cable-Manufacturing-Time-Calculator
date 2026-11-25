@@ -884,22 +884,33 @@ export default function InputPanel({
                       </div>
                     </div>
 
-                    <div className="bg-slate-50 rounded p-2 text-[11px] flex items-center justify-between border border-slate-200 font-sans">
-                      <span className="text-slate-600 font-normal">
-                        Speed: <strong className="text-emerald-700 font-medium">{calc.ratePerMeter} min/m</strong>
-                        {calc.isTandem && calc.runMode === 'tandem_secondary' && (
-                          <span className="text-teal-700 ml-1">(+5m stagger)</span>
-                        )}
-                      </span>
-                      <span className="text-slate-900 font-medium">
-                        {calc.isTandem && calc.runMode === 'tandem_secondary' ? (
-                          <span title={`Nominal process time: ${calc.layerTime.toFixed(1)} mins, but runs concurrently on Machine 2 with only a ${calc.staggerOffset} min stagger`}>
-                            +{calc.effectiveTime.toFixed(1)}m added <span className="text-slate-400 font-normal line-through">({calc.layerTime.toFixed(1)}m)</span>
-                          </span>
-                        ) : (
-                          <span>= {calc.layerTime.toFixed(1)} mins</span>
-                        )}
-                      </span>
+                    <div className="bg-slate-50/80 rounded-lg p-2 text-[11px] border border-slate-200 font-sans space-y-1">
+                      <div className="flex items-center justify-between text-slate-600">
+                        <span>
+                          Core Dia: <strong className="text-slate-900 font-semibold">{calc.incomingDiameter?.toFixed(1) ?? (Number(postTapingDiameter) + index).toFixed(1)} mm</strong>
+                          <span className="text-slate-400 ml-1">({calc.matchedRange || '0-10'} mm range)</span>
+                        </span>
+                        <span className="text-[10px] text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 font-medium">
+                          +1mm → {(calc.outgoingDiameter ?? (Number(postTapingDiameter) + index + 1)).toFixed(1)} mm
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
+                        <span className="text-slate-600 font-normal">
+                          Speed: <strong className="text-emerald-700 font-semibold">{calc.ratePerMeter} min/m</strong>
+                          {calc.isTandem && calc.runMode === 'tandem_secondary' && (
+                            <span className="text-teal-700 ml-1">(+5m stagger)</span>
+                          )}
+                        </span>
+                        <span className="text-slate-900 font-semibold">
+                          {calc.isTandem && calc.runMode === 'tandem_secondary' ? (
+                            <span title={`Nominal process time: ${calc.layerTime.toFixed(1)} mins, but runs concurrently on Machine 2 with only a ${calc.staggerOffset} min stagger`}>
+                              +{calc.effectiveTime.toFixed(1)}m added <span className="text-slate-400 font-normal line-through">({calc.layerTime.toFixed(1)}m)</span>
+                            </span>
+                          ) : (
+                            <span>= {calc.layerTime.toFixed(1)} mins</span>
+                          )}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 );

@@ -179,13 +179,13 @@ export default function ProcessHistoryModal({
                     <div className="md:col-span-5 bg-white p-2.5 rounded-lg border border-slate-200 space-y-1 font-mono text-[11px]">
                       <div className="text-slate-400 text-[10px] uppercase font-bold font-sans">Cable Specifications</div>
                       <div className="text-slate-800">
-                        Length: <strong className="text-slate-900">{item.inputs.length}m</strong> ({(item.inputs.length * 1000).toLocaleString()}mm)
+                        Type: <strong className="text-slate-900">{item.inputs.cableType || 'Torquelite'}</strong> | Length: <strong className="text-slate-900">{item.inputs.length}m</strong>
                       </div>
                       <div className="text-slate-800">
-                        Rounds: <strong className="text-slate-900">{item.inputs.rounds} rnds</strong>
+                        Post-Tape: <strong className="text-slate-900">{item.inputs.postTapingDiameter ?? 12}mm</strong> → OD: <strong className="text-emerald-700">{(item.inputs.finalOuterDiameter || item.inputs.cableOD)?.toFixed(1) ?? '—'}mm</strong>
                       </div>
                       <div className="text-slate-800">
-                        Fitting: <strong className="text-slate-900">{item.inputs.fittingType} ({item.inputs.fittingSize})</strong>
+                        Rounds: <strong className="text-slate-900">{item.inputs.rounds} rnds</strong> | Fitting: <strong className="text-slate-900">{item.inputs.fittingType} ({item.inputs.fittingSize})</strong>
                       </div>
                       <div className="text-slate-800">
                         Braiding: <strong className="text-slate-900">{item.inputs.braidingLayersCount} Layer(s)</strong>

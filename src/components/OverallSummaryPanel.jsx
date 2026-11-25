@@ -92,7 +92,7 @@ export default function OverallSummaryPanel({
 
     const text = `Cable Manufacturing Overall Time Summary:
 Item: ${cableName} (${inputs.cableType || 'Standard'})
-Length: ${inputs.length}m | Rounds: ${inputs.rounds} | OD: ${inputs.cableOD || 25}mm | Fitting: ${inputs.fittingType} ${inputs.fittingSize}
+Length: ${inputs.length}m | Rounds: ${inputs.rounds} | Post-Tape Dia: ${inputs.postTapingDiameter}mm | Outer Dia: ${inputs.finalOuterDiameter?.toFixed(1) ?? inputs.cableOD}mm | Fitting: ${inputs.fittingType} ${inputs.fittingSize}
 ----------------------------------------
 Winding Time:          ${winding.totalTime.toFixed(1)} mins (${(winding.totalTime / 60).toFixed(2)} hrs)
 Moulding Time:         ${moulding.leadTime.toFixed(1)} mins (${(moulding.leadTime / 60).toFixed(2)} hrs)
@@ -117,10 +117,10 @@ Labour Hours:          ${totals.totalLabourHours.toFixed(1)} hrs (~${totals.prod
   };
 
   return (
-    <div className="bg-[#939da4] border border-[#768087] rounded-2xl p-6 shadow-md space-y-6 sticky top-20">
+    <div className="bg-[#f0f6fc] border border-blue-200/80 rounded-2xl p-6 shadow-sm space-y-6 sticky top-20">
       
       {/* Top Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-[#768087]/80">
+      <div className="flex items-center justify-between pb-4 border-b border-blue-100">
         <div>
           <span className="text-[11px] font-semibold uppercase tracking-wider text-blue-700 flex items-center gap-1.5 font-heading">
             <Clock className="w-4 h-4 text-blue-700" /> Manufacturing Lead Time

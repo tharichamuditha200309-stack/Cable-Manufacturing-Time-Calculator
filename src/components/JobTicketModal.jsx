@@ -72,7 +72,12 @@ export default function JobTicketModal({ isOpen, onClose, results, cableName }) 
           </div>
 
           {/* Technical Specifications Grid */}
-          <div className="grid grid-cols-4 gap-3 bg-slate-100 p-3.5 rounded-lg border border-slate-300 text-xs font-mono">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 bg-slate-100 p-3.5 rounded-lg border border-slate-300 text-xs font-mono">
+            <div>
+              <div className="text-[10px] text-slate-500 uppercase">Cable Type</div>
+              <div className="font-bold text-slate-950 text-sm">{inputs.cableType || 'Torquelite'}</div>
+              <div className="text-[10px] text-slate-500">Construction</div>
+            </div>
             <div>
               <div className="text-[10px] text-slate-500 uppercase">Length</div>
               <div className="font-bold text-slate-950 text-sm">{inputs.length} Meters</div>
@@ -84,22 +89,19 @@ export default function JobTicketModal({ isOpen, onClose, results, cableName }) 
               <div className="text-[10px] text-slate-500">{winding.range.id}m cohort</div>
             </div>
             <div>
+              <div className="text-[10px] text-slate-500 uppercase">Post-Tape Dia</div>
+              <div className="font-bold text-slate-950 text-sm">{inputs.postTapingDiameter} mm</div>
+              <div className="text-[10px] text-slate-500">Base Core Dia</div>
+            </div>
+            <div>
+              <div className="text-[10px] text-slate-500 uppercase">Outer Dia (OD)</div>
+              <div className="font-bold text-emerald-700 text-sm">{(inputs.finalOuterDiameter || braiding.finalOuterDiameter)?.toFixed(1)} mm</div>
+              <div className="text-[10px] text-slate-500">+{braiding.layers?.length || 0}mm from braid</div>
+            </div>
+            <div>
               <div className="text-[10px] text-slate-500 uppercase">End Fittings</div>
               <div className="font-bold text-slate-950 text-sm">{inputs.fittingType}</div>
               <div className="text-[10px] text-slate-500">{inputs.fittingSize} ({inputs.endsCount} end{inputs.endsCount > 1 ? 's' : ''})</div>
-            </div>
-            <div>
-              <div className="text-[10px] text-slate-500 uppercase">Braiding Layers</div>
-              <div className="font-bold text-slate-950 text-sm">
-                {braiding.enabled ? `${braiding.layers.length} Layer(s)` : 'None'}
-              </div>
-              <div className="text-[10px] text-slate-500">
-                {braiding.enabled ? (
-                  braiding.pairCount > 0 
-                    ? `${braiding.pairCount} Tandem Pairs + ${braiding.singleCount} Single Runs`
-                    : braiding.layers.map(l => l.desc).join(', ')
-                ) : 'Bypassed'}
-              </div>
             </div>
           </div>
 
