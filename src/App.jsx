@@ -33,7 +33,8 @@ export default function App() {
   const [cableType, setCableType] = useState('Torquelite');
   const [length, setLength] = useState(15);
   const [rounds, setRounds] = useState(50);
-  const [cableOD, setCableOD] = useState(25); // mm Outer Diameter (used for box prep)
+  const [postTapingDiameter, setPostTapingDiameter] = useState(12.0); // mm Post-Taping Core Diameter (input under Taping)
+  const [cableOD, setCableOD] = useState(25); // mm Outer Diameter (fallback)
 
   // Winding Stage
   const [windingSetup, setWindingSetup] = useState(() => referenceData?.winding?.fixedSetupTime ?? 30);

@@ -766,22 +766,3 @@ export function calculateCableTimes({
     }
   };
 }
-      grandTotalMinutes,
-      grandTotalHours: totalHours,
-      formattedHours: `${totalHours.toFixed(2)} hrs`,
-      formattedTotal: `${totalHours.toFixed(2)} hrs (${Math.floor(grandTotalMinutes / 60)}h ${Math.round(grandTotalMinutes % 60)}m)`,
-      formattedTime: `${totalHours.toFixed(2)} hrs`,
-      totalMinutesStr: `${grandTotalMinutes.toFixed(1)} min`,
-      totalSetupTime,
-      setupHours: totalSetupTime / 60,
-      formattedSetupTime: `${totalSetupTime.toFixed(1)} min (${(totalSetupTime / 60).toFixed(2)} hrs)`,
-      totalProcessTime,
-      processHours: totalProcessTime / 60,
-      formattedProcessTime: `${totalProcessTime.toFixed(1)} min (${(totalProcessTime / 60).toFixed(2)} hrs)`,
-      totalLabourHours,
-      productionShifts: Number(productionShifts.toFixed(2)),
-      setupPercent: grandTotalMinutes > 0 ? Math.round((totalSetupTime / grandTotalMinutes) * 100) : 0,
-      processPercent: grandTotalMinutes > 0 ? Math.round((totalProcessTime / grandTotalMinutes) * 100) : 0
-    }
-  };
-}

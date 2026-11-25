@@ -1,13 +1,13 @@
 import React from 'react';
-import { 
-  History, 
-  Trash2, 
-  RotateCcw, 
-  X, 
-  Download, 
-  Calendar, 
-  Clock, 
-  ArrowRight, 
+import {
+  History,
+  Trash2,
+  RotateCcw,
+  X,
+  Download,
+  Calendar,
+  Clock,
+  ArrowRight,
   CheckCircle,
   ExternalLink,
   Plus
@@ -73,7 +73,7 @@ export default function ProcessHistoryModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
       <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-        
+
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50">
           <div className="flex items-center gap-3">
@@ -174,7 +174,7 @@ export default function ProcessHistoryModal({
 
                   {/* Specifications & Process Summation Grid */}
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-3 text-xs items-center">
-                    
+
                     {/* Cable Specs (Span 5) */}
                     <div className="md:col-span-5 bg-white p-2.5 rounded-lg border border-slate-200 space-y-1 font-mono text-[11px]">
                       <div className="text-slate-400 text-[10px] uppercase font-bold font-sans">Cable Specifications</div>
