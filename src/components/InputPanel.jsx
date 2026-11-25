@@ -57,6 +57,8 @@ export default function InputPanel({
   // Braiding
   includeBraiding,
   setIncludeBraiding,
+  cableOD,
+  setCableOD,
   braidingBaseSetup,
   setBraidingBaseSetup,
   braidingSetupPerLayer,
@@ -1029,7 +1031,7 @@ export default function InputPanel({
                   Fitting: {fittingType} {fittingSize}
                 </span>
                 <span className="bg-white px-2 py-0.5 rounded border border-amber-300 font-medium text-amber-800 text-[11px]">
-                  OD: {cableOD}mm
+                  Outer Dia: {(braidingResults?.finalOuterDiameter ?? (Number(cableOD) || 12)).toFixed(1)}mm
                 </span>
               </div>
               <span className="text-[11px] text-slate-500 font-normal">
